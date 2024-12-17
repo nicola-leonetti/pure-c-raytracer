@@ -23,4 +23,12 @@ point3 ray_at(const ray r, my_decimal t) {
     return vec3_sum(r.origin, vec3_scale(r.direction, t));
 }
 
+void ray_print(ray r) {
+    fprintf(stderr, "Ray");
+    printf("  direction=");
+    vec3_print(r.direction);
+    printf("\n  origin=");
+    point3_print(r.origin); 
+}
+
 #endif

@@ -9,7 +9,7 @@
 #define point3_new vec3_new
 
 void point3_print(const point3 v) {
-    printf("Point(%f, %f, %f)\n", v.x, v.y, v.z);
+    fprintf(stderr, "Point(%f, %f, %f)\n", v.x, v.y, v.z);
 }
 
 #endif

@@ -61,7 +61,36 @@ vec3 vec3_cross(const vec3 u, const vec3 v) {
 }
 
 void vec3_print(const vec3 v) {
-    printf("Vector(%f, %f, %f)\n", v.x, v.y, v.z);
+    fprintf(stderr, "Vector(%f, %f, %f)\n", v.x, v.y, v.z);
 }
+
+vec3 vec3_random() {
+    vec3 v = {random_my_decimal(), random_my_decimal(), random_my_decimal()};
+    return v;
+}
+vec3 vec3_random_in(my_decimal min, my_decimal max) {
+    vec3 v = {
+        random_my_decimal_in(min, max), 
+        random_my_decimal_in(min, max), 
+        random_my_decimal_in(min, max) 
+    };
+    return v;
+}
+// TODO Optimize
+vec3 vec3_random_unit() {
+    while (true) {
+        vec3 point = vec3_random();
+        my_decimal length_squared = vec3_length_squared(point);
+        if (MY_DECIMAL_UNDERFLOW_LIMIT < length_squared && length_squared <= 1) {
+            return vec3_divide(point, sqrt(length_squared));
+        }
+    }
+}
+// Return a random unit vector un a surface with a given surface normal
+vec3 vec3_random_on_hemisphere(vec3 normal) {
+    vec3 v = vec3_random_unit();
+    return (vec3_dot(v, normal) > 0) ? v : vec3_scale(v, -1.0); 
+}
+
 
 #endif
