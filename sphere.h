@@ -22,11 +22,11 @@ sphere sphere_new(point3 center, my_decimal radius) {
 hit_result sphere_hit(ray r, sphere s, my_decimal t_min, my_decimal t_max) {
     hit_result result;
 
-    vec3 oc = vec3_subtract(s.center, r.origin);
+    vec3 oc = subtract(s.center, r.origin);
 
-    my_decimal a = vec3_length_squared(r.direction);
-    my_decimal h = vec3_dot(r.direction, oc);
-    my_decimal c = vec3_length_squared(oc) - (s.radius)*(s.radius);
+    my_decimal a = squared_length(r.direction);
+    my_decimal h = dot(r.direction, oc);
+    my_decimal c = squared_length(oc) - (s.radius)*(s.radius);
     my_decimal discriminant = h*h - a*c;
 
     // discriminant < 0 -> no real solutions -> no intersections
@@ -55,16 +55,16 @@ hit_result sphere_hit(ray r, sphere s, my_decimal t_min, my_decimal t_max) {
     result.p = ray_at(r, result.t);
     // Calculating the normal vector with this formula, it always points
     // outwards
-    result.normal = vec3_divide(vec3_subtract(result.p, s.center), s.radius);
+    result.normal = divide(subtract(result.p, s.center), s.radius);
 
     // In order to calculate wether we hit an inside or ourside face, we can 
     // compute the dot product with the (OUTSIDE-POINTING!!!) normal
-    result.front_face = (vec3_dot(r.direction, result.normal) < 0);
+    result.front_face = (dot(r.direction, result.normal) < 0);
 
     // TODO Se non funziona, devo invertire il segno della normale quando il
     // raggio colpisce l'oggetto da dentro
     // if (!result.front_face) {
-    //     result.normal = vec3_scale(result.normal, -1);
+    //     result.normal = scale(result.normal, -1);
     // }
 
     return result;

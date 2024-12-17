@@ -20,7 +20,7 @@ ray ray_new(const point3 origin, const vec3 direction) {
 
 // Function to get the point at a given time t along the ray
 point3 ray_at(const ray r, my_decimal t) {
-    return vec3_sum(r.origin, vec3_scale(r.direction, t));
+    return sum(r.origin, scale(r.direction, t));
 }
 
 void ray_print(ray r) {

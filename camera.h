@@ -8,7 +8,7 @@
 #include "vec3.h"
 
 #define RAY_T_MAX 9999
-#define SAMPLES_PER_PIXEL 100
+#define SAMPLES_PER_PIXEL 10
 #define MAX_RAY_BOUNCES 50
 
 typedef struct {
@@ -50,16 +50,16 @@ camera camera_new(my_decimal aspect_ratio, int image_width) {
     // viewport edges.
     cam.viewport_u = vec3_new(cam.viewport_width, 0, 0);
     cam.viewport_v = vec3_new(0, -cam.viewport_height, 0);
-    cam.pixel_delta_u = vec3_divide(cam.viewport_u, cam.image_width);
-    cam.pixel_delta_v = vec3_divide(cam.viewport_v, cam.image_height);
+    cam.pixel_delta_u = divide(cam.viewport_u, cam.image_width);
+    cam.pixel_delta_v = divide(cam.viewport_v, cam.image_height);
 
     // Location of upper left pixel
     cam.pixel00 = cam.center;
-    cam.pixel00 = vec3_subtract(cam.pixel00, vec3_new(0, 0, cam.focal_length));
-    cam.pixel00 = vec3_subtract(cam.pixel00, vec3_divide(cam.viewport_u, 2));
-    cam.pixel00 = vec3_subtract(cam.pixel00, vec3_divide(cam.viewport_v, 2));
-    cam.pixel00 = vec3_sum(cam.pixel00, vec3_scale(
-        vec3_sum(cam.pixel_delta_u, cam.pixel_delta_v), 0.5));
+    cam.pixel00 = subtract(cam.pixel00, vec3_new(0, 0, cam.focal_length));
+    cam.pixel00 = subtract(cam.pixel00, divide(cam.viewport_u, 2));
+    cam.pixel00 = subtract(cam.pixel00, divide(cam.viewport_v, 2));
+    cam.pixel00 = sum(cam.pixel00, scale(
+        sum(cam.pixel_delta_u, cam.pixel_delta_v), 0.5));
 
     cam.pixel_sample_scale = 1.0/SAMPLES_PER_PIXEL;
 
@@ -75,12 +75,12 @@ ray get_random_ray(camera cam, int i, int j) {
                             random_my_decimal() - 0.5, 0.0);
 
     point3 pixel_sample = cam.pixel00;
-    pixel_sample = vec3_sum(pixel_sample, 
-                            vec3_scale(cam.pixel_delta_u, i+offset.x));
-    pixel_sample = vec3_sum(pixel_sample, 
-                            vec3_scale(cam.pixel_delta_v, j+offset.y));
+    pixel_sample = sum(pixel_sample, 
+                            scale(cam.pixel_delta_u, i+offset.x));
+    pixel_sample = sum(pixel_sample, 
+                            scale(cam.pixel_delta_v, j+offset.y));
 
-    vec3 ray_direction = vec3_subtract(pixel_sample, cam.center); 
+    vec3 ray_direction = subtract(pixel_sample, cam.center); 
     return ray_new(cam.center, ray_direction);   
 }
 
@@ -110,16 +110,16 @@ color ray_color(ray r, sphere world[], int number_of_spheres, int bounces) {
         if (bounces == 0) {
             return color_new(0, 0, 0);
         }
-        return vec3_scale(ray_color(ray_new(result.p, direction), 
+        return scale(ray_color(ray_new(result.p, direction), 
                                     world, number_of_spheres, bounces-1), 0.5);
     }
 
     vec3 unit_direction = vec3_unit(r.direction);
     my_decimal a = 0.5*(unit_direction.y + 1.0);
 
-    return vec3_sum(
-                vec3_scale(color_new(1.0, 1.0, 1.0),  (1.0 - a)),
-                vec3_scale(color_new(0.5, 0.7, 1.0), a)
+    return sum(
+                scale(color_new(1.0, 1.0, 1.0),  (1.0 - a)),
+                scale(color_new(0.5, 0.7, 1.0), a)
     );
 }
 
@@ -138,9 +138,9 @@ void camera_render(camera cam, sphere world[], int number_of_spheres) {
                 ray random_ray = get_random_ray(cam, i, j);
                 color sampled_color = ray_color(random_ray, world, 
                                         number_of_spheres, MAX_RAY_BOUNCES);
-                pixel_color = vec3_sum(pixel_color, sampled_color);
+                pixel_color = sum(pixel_color, sampled_color);
             } 
-            pixel_color = vec3_scale(pixel_color, cam.pixel_sample_scale);
+            pixel_color = scale(pixel_color, cam.pixel_sample_scale);
             color_print_PPM(pixel_color);
         }
         // Update progress counter
