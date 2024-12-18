@@ -109,11 +109,11 @@ color ray_color(ray *r, sphere world[], int number_of_spheres, int bounces) {
         #else
             vec3 direction = vec3_random_on_hemisphere(result.normal);
         #endif
-
         ray reflected_ray = ray_new(result.p, direction);
-        return (bounces == 0) ? COLOR_BLACK :
-                                scale(ray_color(&reflected_ray,
-                                    world, number_of_spheres, bounces-1), 0.5);
+        return (bounces == 0) ? 
+            COLOR_BLACK :
+            scale(ray_color(
+                    &reflected_ray, world, number_of_spheres, bounces-1), 0.5);
     }
 
     // If no object is hit, return a blend between blue and white based on the 
@@ -121,19 +121,19 @@ color ray_color(ray *r, sphere world[], int number_of_spheres, int bounces) {
     return BLEND(vec3_unit(r->direction).y, COLOR_WHITE, COLOR_BLUE);
 }
 
-void camera_render(camera cam, sphere world[], int number_of_spheres) {
+void camera_render(camera *cam, sphere world[], int number_of_spheres) {
     // PPM header
-    printf("P3\n%d %d\n255\n", cam.image_width, cam.image_height);
+    printf("P3\n%d %d\n255\n", cam->image_width, cam->image_height);
 
     // Render cycle
-    for (int j = 0; j < cam.image_height; j++) {
-        for (int i = 0; i < cam.image_width; i++) {
+    for (int j = 0; j < cam->image_height; j++) {
+        for (int i = 0; i < cam->image_width; i++) {
             color pixel_color = color_new(0, 0, 0);
 
             // Antialiasing: sample SAMPLE_PER_PIXEL colors and average them to 
             // obtain pixel color
             for (int sample = 0; sample < SAMPLES_PER_PIXEL; sample++) {
-                ray random_ray = get_random_ray(&cam, i, j);
+                ray random_ray = get_random_ray(cam, i, j);
                 color sampled_color = ray_color(&random_ray, world, 
                                         number_of_spheres, MAX_RAY_BOUNCES);
                 pixel_color = sum(pixel_color, sampled_color);
@@ -143,7 +143,7 @@ void camera_render(camera cam, sphere world[], int number_of_spheres) {
             color_print_PPM(pixel_color);
         }
         // Update progress counter
-        fprintf(stderr, "\rScanlines processed: %d/%d", j + 1, cam.image_height);
+        fprintf(stderr, "\rScanlines processed: %d/%d", j + 1, cam->image_height);
         fflush(stderr);
     }
 

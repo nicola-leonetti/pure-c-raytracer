@@ -4,9 +4,6 @@
 #include "common.h"
 #include "sphere.h"
 
-#define ASPECT_RATIO 16.0/9.0
-#define VIEWPORT_WIDTH 400
-
 #define NUMBER_OF_SPHERES 2
 sphere world[NUMBER_OF_SPHERES] = {
     //   center,   radius
@@ -21,7 +18,7 @@ int main() {
     clock_t start = clock();
     
     camera cam = camera_new(ASPECT_RATIO, VIEWPORT_WIDTH);
-    camera_render(cam, world, NUMBER_OF_SPHERES);
+    camera_render(&cam, world, NUMBER_OF_SPHERES);
 
     clock_t end  = clock();
     double elapsed_time = ((double)(end - start)) / CLOCKS_PER_SEC;
