@@ -13,19 +13,19 @@ vec3 vec3_new(my_decimal e0, my_decimal e1, my_decimal e2) {
     return (vec3) {e0, e1, e2};
 }
 
-vec3 sum(vec3 u, const vec3 v) {
+vec3 sum(vec3 u, vec3 v) {
     return vec3_new((u.x)+(v.x), (u.y)+(v.y), (u.z)+(v.z));
 }
 
-vec3 subtract(vec3 u, const vec3 v) {
+vec3 subtract(vec3 u, vec3 v) {
     return vec3_new((u.x)-(v.x), (u.y)-(v.y), (u.z)-(v.z));
 }
-
-my_decimal squared_length(const vec3 v) {
+    
+my_decimal squared_length(vec3 v) {
     return (v.x)*(v.x) + (v.y)*(v.y) + (v.z)*(v.z);
 }
 
-my_decimal length(const vec3 v) {
+my_decimal length(vec3 v) {
     return sqrt(squared_length(v));
 }
 
@@ -47,17 +47,17 @@ vec3 vec3_unit(vec3 v) {
 }
 
 // Element-wise multiplication
-vec3 mul(const vec3 u, const vec3 v) {
+vec3 mul(vec3 u, vec3 v) {
     return vec3_new((u.x)*(v.x), (u.y)*(v.y), (u.z)*(v.z));
 }
 
 // Dot product
-my_decimal dot(const vec3 u, const vec3 v) {
+my_decimal dot(vec3 u, vec3 v) {
     return (u.x)*(v.x) + (u.y)*(v.y) + (u.z)*(v.z);
 }
 
 // Cross product
-vec3 cross(const vec3 u, const vec3 v) {
+vec3 cross(vec3 u, vec3 v) {
     return (vec3) {
         (u.y)*(v.z) - (u.z)*(v.y), 
         (u.z)*(v.x) - (u.x)*(v.z),
@@ -65,7 +65,7 @@ vec3 cross(const vec3 u, const vec3 v) {
     };
 }
 
-void vec3_print(const vec3 v) {
+void vec3_print(vec3 v) {
     fprintf(stderr, "Vector(%f, %f, %f)\n", v.x, v.y, v.z);
 }
 

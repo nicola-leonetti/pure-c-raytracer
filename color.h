@@ -11,6 +11,15 @@
 #define color vec3
 #define color_new vec3_new
 
+#define COLOR_BLACK color_new(0.0, 0.0, 0.0)
+#define COLOR_WHITE color_new(1.0, 1.0, 1.0)
+#define COLOR_BLUE color_new(0.5, 0.7, 1.0)
+
+// Return a blend (lerp) going  from  color1 and color2 based on blend factor a
+#define BLEND(a, color1, color2) \
+        sum(scale(color1, (0.5 * (1.0 - a))), \
+        scale(color2, (0.5 * (1.0 + a))))
+
 // Prints color to stderr in readable format
 void color_print(color c) {
     fprintf(stderr, "%d %d %d\n", 

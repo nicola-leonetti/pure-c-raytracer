@@ -1,14 +1,10 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#define my_decimal double
-
-// Value that is safe to square without underflow
-#define MY_DECIMAL_UNDERFLOW_LIMIT 1e-18
+#include "parameters.h"
 
 #include <stdbool.h>
 #include <stdlib.h>
-#include <time.h>
 
 // Returns a my_decimal in [0, 1)
 my_decimal random_my_decimal() {

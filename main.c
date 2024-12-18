@@ -1,4 +1,7 @@
+#include <time.h>
+
 #include "camera.h"
+#include "common.h"
 #include "sphere.h"
 
 #define ASPECT_RATIO 16.0/9.0
@@ -14,7 +17,13 @@ sphere world[NUMBER_OF_SPHERES] = {
 int main() {
     // Initialize RNG
     srand((unsigned int) time(NULL));
+
+    clock_t start = clock();
     
     camera cam = camera_new(ASPECT_RATIO, VIEWPORT_WIDTH);
     camera_render(cam, world, NUMBER_OF_SPHERES);
+
+    clock_t end  = clock();
+    double elapsed_time = ((double)(end - start)) / CLOCKS_PER_SEC;
+    fprintf(stderr, "Elapsed time: %.6fs\n", elapsed_time);
 }

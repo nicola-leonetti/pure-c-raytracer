@@ -19,13 +19,13 @@ sphere sphere_new(point3 center, my_decimal radius) {
 // Returns hit point and normal vector of a ray with a sphere.
 // For the details of how this calculation is performed, refer to the sources 
 // in README.md
-hit_result sphere_hit(ray r, sphere s, my_decimal t_min, my_decimal t_max) {
+hit_result sphere_hit(ray *r, sphere s, my_decimal t_min, my_decimal t_max) {
     hit_result result;
 
-    vec3 oc = subtract(s.center, r.origin);
+    vec3 oc = subtract(s.center, r->origin);
 
-    my_decimal a = squared_length(r.direction);
-    my_decimal h = dot(r.direction, oc);
+    my_decimal a = squared_length(r->direction);
+    my_decimal h = dot(r->direction, oc);
     my_decimal c = squared_length(oc) - (s.radius)*(s.radius);
     my_decimal discriminant = h*h - a*c;
 
@@ -49,17 +49,18 @@ hit_result sphere_hit(ray r, sphere s, my_decimal t_min, my_decimal t_max) {
         }
     }
 
-    // Calculate intersection and return result
+    // Calculate intersection
     result.did_hit = true;
     result.t = root;
-    result.p = ray_at(r, result.t);
+    result.p = ray_at(*r, result.t);
+
     // Calculating the normal vector with this formula, it always points
     // outwards
     result.normal = divide(subtract(result.p, s.center), s.radius);
 
     // In order to calculate wether we hit an inside or ourside face, we can 
     // compute the dot product with the (OUTSIDE-POINTING!!!) normal
-    result.front_face = (dot(r.direction, result.normal) < 0);
+    result.front_face = (dot(r->direction, result.normal) < 0);
 
     // TODO Se non funziona, devo invertire il segno della normale quando il
     // raggio colpisce l'oggetto da dentro
