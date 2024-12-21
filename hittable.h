@@ -9,14 +9,14 @@
 typedef struct {
     bool did_hit;
     my_decimal t;
-    point3 p;
+    t_point3 p;
 
     // Always points towards outside the surface.
     // Not normalized to length 1 here, but later in the geometry code
-    vec3 normal;
+    t_vec3 normal;
     
     // Set to true if the ray hits the object on its front face
     bool front_face;
-} hit_result;
+} t_hit_result;
 
 #endif

@@ -8,7 +8,7 @@
 
 // A color is represented as a vector with three values normalized in the range
 // [0, 1]
-#define color vec3
+#define t_color t_vec3
 #define color_new vec3_new
 
 #define COLOR_BLACK color_new(0.0, 0.0, 0.0)
@@ -20,8 +20,11 @@
         sum(scale(color1, (0.5 * (1.0 - a))), \
         scale(color2, (0.5 * (1.0 + a))))
 
+#define TO_GAMMA(a) \
+        (a > 0) ? sqrt(a) : a
+
 // Prints color to stderr in readable format
-void color_print(color c) {
+void color_print(t_color c) {
     fprintf(stderr, "%d %d %d\n", 
             (int) (255.999 * c.x), 
             (int) (255.999 * c.y), 
@@ -29,7 +32,7 @@ void color_print(color c) {
 }
 
 // Prints the color to stdout in PPM format
-void color_print_PPM(color c) {
+void color_print_PPM(t_color c) {
     // Clamp color RGB components to interval [0, 0.999]
     c.x = (c.x > 0.999) ? 0.999 : c.x;
     c.y = (c.y > 0.999) ? 0.999 : c.y;
@@ -38,10 +41,14 @@ void color_print_PPM(color c) {
     c.y = (c.y < 0) ? 0 : c.y;
     c.z = (c.z < 0) ? 0 : c.z;
 
+    my_decimal r = TO_GAMMA(c.x);
+    my_decimal g = TO_GAMMA(c.y);
+    my_decimal b = TO_GAMMA(c.z);
+
     printf("%d %d %d\n", 
-            (int) (255.999 * c.x), 
-            (int) (255.999 * c.y), 
-            (int) (255.999 * c.z));
+            (int) (255.999 * r), 
+            (int) (255.999 * g), 
+            (int) (255.999 * b));
 }
 
 #endif 

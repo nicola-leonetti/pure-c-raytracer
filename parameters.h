@@ -11,7 +11,7 @@
 
 // How many rays to send inside each square pixel in order to obtain a more 
 // precise color (antialiasing).
-#define SAMPLES_PER_PIXEL 100
+#define SAMPLES_PER_PIXEL 10
 
 // Limit to how many times a ray can bounce from a reflective surface to 
 // another before determining its color. This is done in order to avoid stack 

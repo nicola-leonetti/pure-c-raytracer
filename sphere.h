@@ -7,22 +7,22 @@
 #include "ray.h"
 
 typedef struct {
-    point3 center;
+    t_point3 center;
     my_decimal radius;
-} sphere;
+} t_sphere;
 
-sphere sphere_new(point3 center, my_decimal radius) {
-    sphere s = {center, radius};
+t_sphere sphere_new(t_point3 center, my_decimal radius) {
+    t_sphere s = {center, radius};
     return s;
 }
 
 // Returns hit point and normal vector of a ray with a sphere.
 // For the details of how this calculation is performed, refer to the sources 
 // in README.md
-hit_result sphere_hit(ray *r, sphere s, my_decimal t_min, my_decimal t_max) {
-    hit_result result;
+t_hit_result sphere_hit(t_ray *r, t_sphere s, my_decimal t_min, my_decimal t_max) {
+    t_hit_result result;
 
-    vec3 oc = subtract(s.center, r->origin);
+    t_vec3 oc = subtract(s.center, r->origin);
 
     my_decimal a = squared_length(r->direction);
     my_decimal h = dot(r->direction, oc);

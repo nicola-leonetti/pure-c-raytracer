@@ -8,22 +8,22 @@
 #include "vec3.h"
 
 typedef struct {
-    point3 origin;
-    vec3 direction;
-} ray;
+    t_point3 origin;
+    t_vec3 direction;
+} t_ray;
 
 // Constructor
-ray ray_new(const point3 origin, const vec3 direction) {
-    ray r = {origin, direction};
+t_ray ray_new(const t_point3 origin, const t_vec3 direction) {
+    t_ray r = {origin, direction};
     return r;
 }
 
 // Function to get the point at a given time t along the ray
-point3 ray_at(const ray r, my_decimal t) {
+t_point3 ray_at(const t_ray r, my_decimal t) {
     return sum(r.origin, scale(r.direction, t));
 }
 
-void ray_print(ray r) {
+void ray_print(t_ray r) {
     fprintf(stderr, "Ray");
     printf("  direction=");
     vec3_print(r.direction);

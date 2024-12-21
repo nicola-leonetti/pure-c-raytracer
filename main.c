@@ -5,7 +5,7 @@
 #include "sphere.h"
 
 #define NUMBER_OF_SPHERES 2
-sphere world[NUMBER_OF_SPHERES] = {
+t_sphere world[NUMBER_OF_SPHERES] = {
     //   center,   radius
     { {0,0,-1}, 0.5 },
     { {0,-100.5,-1}, 100 },
@@ -17,7 +17,7 @@ int main() {
 
     clock_t start = clock();
     
-    camera cam = camera_new(ASPECT_RATIO, VIEWPORT_WIDTH);
+    t_camera cam = camera_new(ASPECT_RATIO, VIEWPORT_WIDTH);
     camera_render(&cam, world, NUMBER_OF_SPHERES);
 
     clock_t end  = clock();
