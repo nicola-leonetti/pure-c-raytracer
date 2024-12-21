@@ -1,18 +1,22 @@
 #ifndef SPHERE_H
 #define SPHERE_H
 
+#include "color.h"
 #include "common.h"
 #include "hittable.h"
+#include "material.h"
 #include "point3.h"
 #include "ray.h"
 
 typedef struct {
     t_point3 center;
     my_decimal radius;
+    t_color albedo;
+    t_material surface_material;
 } t_sphere;
 
-t_sphere sphere_new(t_point3 center, my_decimal radius) {
-    t_sphere s = {center, radius};
+t_sphere sphere_new(t_point3 center, my_decimal radius, t_color albedo) {
+    t_sphere s = {center, radius, albedo};
     return s;
 }
 
@@ -61,6 +65,9 @@ t_hit_result sphere_hit(t_ray *r, t_sphere s, my_decimal t_min, my_decimal t_max
     // In order to calculate wether we hit an inside or ourside face, we can 
     // compute the dot product with the (OUTSIDE-POINTING!!!) normal
     result.front_face = (dot(r->direction, result.normal) < 0);
+
+    result.albedo = s.albedo;
+    result.surface_material = s.surface_material;
 
     // TODO Se non funziona, devo invertire il segno della normale quando il
     // raggio colpisce l'oggetto da dentro

@@ -1,13 +1,19 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
+#include "color.h"
 #include "common.h"
+#include "ray.h"
 
-typedef struct {
-    // How much light is reflected
-    my_decimal albedo;
+typedef enum {
+    LAMBERTIAN, 
+    METAL
 } t_material;
 
-#define LAMBERTIAN ( (t_material) {0.5} )
+
+
+
+// Lambertian
+
 
 #endif 

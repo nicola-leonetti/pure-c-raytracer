@@ -11,9 +11,13 @@
 #define t_color t_vec3
 #define color_new vec3_new
 
-#define COLOR_BLACK color_new(0.0, 0.0, 0.0)
-#define COLOR_WHITE color_new(1.0, 1.0, 1.0)
-#define COLOR_BLUE color_new(0.5, 0.7, 1.0)
+#define COLOR_BLACK  (t_color)   {0.0, 0.0, 0.0}
+#define COLOR_GRAY   (t_color)   {0.5, 0.5, 0.5}
+#define COLOR_WHITE  (t_color)   {1.0, 1.0, 1.0}
+#define COLOR_RED    (t_color)   {1.0, 0.0, 0.0}
+#define COLOR_BLUE   (t_color)   {0.0, 0.0, 1.0}
+#define COLOR_GREEN  (t_color)   {0.0, 1.0, 0.0}
+#define COLOR_SKY    (t_color)   {0.5, 0.7, 1.0}
 
 // Return a blend (lerp) going  from  color1 and color2 based on blend factor a
 #define BLEND(a, color1, color2) \

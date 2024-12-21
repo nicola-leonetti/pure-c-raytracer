@@ -105,4 +105,13 @@ t_vec3 vec3_random_on_hemisphere(t_vec3 normal) {
     return (dot(v, normal) > 0) ? v : scale(v, -1.0); 
 }
 
+#define NEAR_ZERO(v) \
+    (fabs(v.x) < NEAR_ZERO_TRESHOLD) && \
+    (fabs(v.y) < NEAR_ZERO_TRESHOLD) && \
+    (fabs(v.z) < NEAR_ZERO_TRESHOLD)
+
+// Calculate reflected ray over a surface with given normal
+#define REFLECT(v, n) \
+    subtract(v, scale(n, 2*dot(v, n)))
+
 #endif

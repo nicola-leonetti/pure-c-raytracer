@@ -85,9 +85,15 @@ t_ray get_random_ray(t_camera *cam, int i, int j) {
 
 // Determining a different color for each of the pixels of the viewport by 
 // sending one or more rays from the camera center to each pixel 
-t_color ray_color(t_ray *r, t_sphere world[], int number_of_spheres, int bounces) {
+t_color ray_color(t_ray *r, t_sphere world[], int number_of_spheres, 
+                  int bounces, bool *hit_anything) { 
+    
+    *hit_anything = false;
+    if (bounces == 0) {
+        return COLOR_BLACK;
+    }
+
     t_hit_result temp, result;
-    bool hit_anything = false;
     my_decimal closest_hit = RAY_T_MAX;
 
     // For each sphere, if the ray hits the sphere before all the other spheres
@@ -95,30 +101,30 @@ t_color ray_color(t_ray *r, t_sphere world[], int number_of_spheres, int bounces
     for (int i = 0; i < number_of_spheres; i++) {
         temp = sphere_hit(r, world[i], 0.001, closest_hit);
         if (temp.did_hit) {
-            hit_anything = true;
+            *hit_anything = true;
             closest_hit = temp.t;
             result = temp;
         } 
     }
 
-    if (result.did_hit) {
-        // Return the color of a random ray. To limit recursion depth, after a 
-        // certain number of recursion, black is returned.
-        #if USE_LAMBERTIAN_REFLECTION 
-            t_vec3 direction = sum(result.normal, vec3_random_unit());
-        #else
-            t_vec3 direction = vec3_random_on_hemisphere(result.normal);
-        #endif
-        t_ray reflected_ray = ray_new(result.p, direction);
-        return (bounces == 0) ? 
-            COLOR_BLACK :
-            scale(ray_color(
-                    &reflected_ray, world, number_of_spheres, bounces-1), 0.5);
+    if (*hit_anything) {
+        // Return the color of the scattered ray, if any. 
+        // To limit recursion depth, after a certain number of recursions black
+        // is returned.
+        t_vec3 direction = sum(result.normal, vec3_random_unit());
+        direction = NEAR_ZERO(direction) ? result.normal : direction;
+
+        t_ray scattered_ray = ray_new(result.p, direction);
+        
+        t_color scattered_ray_color = 
+            ray_color(&scattered_ray, world, number_of_spheres, bounces-1, hit_anything);
+        
+        return mul(result.albedo, scattered_ray_color);
     }
 
     // If no object is hit, return a blend between blue and white based on the 
     // y coordinate, so going vertically from white all the way to blue
-    return BLEND(vec3_unit(r->direction).y, COLOR_WHITE, COLOR_BLUE);
+    return BLEND(vec3_unit(r->direction).y, COLOR_WHITE, COLOR_SKY);
 }
 
 void camera_render(t_camera *cam, t_sphere world[], int number_of_spheres) {
@@ -126,6 +132,7 @@ void camera_render(t_camera *cam, t_sphere world[], int number_of_spheres) {
     printf("P3\n%d %d\n255\n", cam->image_width, cam->image_height);
 
     // Render cycle
+    bool dummy = false;
     for (int j = 0; j < cam->image_height; j++) {
         for (int i = 0; i < cam->image_width; i++) {
             t_color pixel_color = color_new(0, 0, 0);
@@ -135,7 +142,7 @@ void camera_render(t_camera *cam, t_sphere world[], int number_of_spheres) {
             for (int sample = 0; sample < SAMPLES_PER_PIXEL; sample++) {
                 t_ray random_ray = get_random_ray(cam, i, j);
                 t_color sampled_color = ray_color(&random_ray, world, 
-                                        number_of_spheres, MAX_RAY_BOUNCES);
+                    number_of_spheres, MAX_RAY_BOUNCES, &dummy);
                 pixel_color = sum(pixel_color, sampled_color);
             } 
             pixel_color = divide(pixel_color, SAMPLES_PER_PIXEL);

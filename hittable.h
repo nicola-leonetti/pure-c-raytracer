@@ -2,6 +2,7 @@
 #define HITTABLE_H
 
 #include "common.h"
+#include "material.h"
 #include "point3.h"
 #include "vec3.h"
 
@@ -17,6 +18,9 @@ typedef struct {
     
     // Set to true if the ray hits the object on its front face
     bool front_face;
+
+    t_material surface_material;
+    t_color albedo;
 } t_hit_result;
 
 #endif

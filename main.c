@@ -1,14 +1,25 @@
 #include <time.h>
 
 #include "camera.h"
+#include "color.h"
 #include "common.h"
+#include "material.h"
 #include "sphere.h"
 
 #define NUMBER_OF_SPHERES 2
 t_sphere world[NUMBER_OF_SPHERES] = {
-    //   center,   radius
-    { {0,0,-1}, 0.5 },
-    { {0,-100.5,-1}, 100 },
+    {
+        {0,0,-1},    // center
+        0.5,         // radius
+        COLOR_RED,  // color
+        LAMBERTIAN   // type of material
+    },
+    {
+        {0,-100.5,-1}, 
+        100, 
+        COLOR_GRAY,
+        LAMBERTIAN 
+    },
 };
 
 int main() {
