@@ -6,6 +6,6 @@ Simple raytracer written in pure C, based on the book [_Ray Tracing in One Weeke
 The following compiles and runs the program, creating the image file `img.ppm` in the current directory.
 
 ```bash
-gcc main.c -o main
+gcc main.c -o main -lm
 main.c > img.ppm
 ```
