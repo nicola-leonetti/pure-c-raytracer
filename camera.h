@@ -20,9 +20,6 @@ typedef struct {
     // distance.
     t_point3 center;
 
-    // Distance between the center of the viewport and the camera center
-    my_decimal focal_length;
-
     // The viewport is a virtual rectangle in our 3D world containing the 
     // square pixels in our rendered image.
     // One or more rays are sent from the camera center through each pixel of 
@@ -37,33 +34,72 @@ typedef struct {
 
     // Center of upper-left pixel in the viewpoer
     t_point3 pixel00;
+
+    // Vertical field of view, aka the angle between the image top and bottom.
+    // Expressed in degrees
+    my_decimal vertical_fov; 
+
+    // Where the camera center from (camera center) and where it looks towards
+    t_point3 look_from, look_at;
+
+    // What the camera considers to be "up"
+    t_vec3 up_direction;
+
+    my_decimal defocus_angle;
+
+    // How distant a plane with perfect focus is from the lookfrom angle
+    my_decimal focus_dist;
+
+    // Horizontal and vertical radius of defocus disk
+    t_vec3 defocus_disk_u, defocus_disk_v;
 } t_camera;
 
 // Constructor
-t_camera camera_new(my_decimal aspect_ratio, int image_width) {
+t_camera camera_new(my_decimal aspect_ratio, 
+                    int image_width, 
+                    my_decimal fov, 
+                    t_point3 look_from, 
+                    t_point3 look_at,
+                    my_decimal defocus_angle,
+                    my_decimal focus_dist) {
     t_camera cam;
 
     cam.image_height = (int) (image_width/aspect_ratio);
     cam.image_height = (cam.image_height < 1) ? 1 : cam.image_height;
     cam.image_width = image_width;
 
-    cam.center = point3_new(0, 0, 0);
-    cam.focal_length = 1.0;
+    cam.look_from = look_from;
+    cam.look_at = look_at;
+    cam.up_direction = vec3_new(0, 1, 0);
 
-    cam.viewport_height = 2.0;
+    cam.center = look_from;
+
+    t_vec3 w = vec3_unit(subtract(look_from, look_at));
+    t_vec3 u = vec3_unit(cross(cam.up_direction, w));
+    t_vec3 v = cross(w, u);
+
+    cam.focus_dist = 10;
+    cam.defocus_angle = 0;
+
+    cam.viewport_height = \
+        2.0 * tan(degrees_to_radians(fov)/2.0) * cam.focus_dist;
     cam.viewport_width = cam.viewport_height * 
         (((my_decimal) image_width)/cam.image_height);
-    cam.viewport_u = vec3_new(cam.viewport_width, 0, 0);
-    cam.viewport_v = vec3_new(0, -cam.viewport_height, 0);
+    cam.viewport_u = scale(u, cam.viewport_width);
+    cam.viewport_v = scale(v, -cam.viewport_height);
     cam.pixel_delta_u = divide(cam.viewport_u, cam.image_width);
     cam.pixel_delta_v = divide(cam.viewport_v, cam.image_height);
 
     cam.pixel00 = cam.center;
-    cam.pixel00 = subtract(cam.pixel00, vec3_new(0, 0, cam.focal_length));
+    cam.pixel00 = subtract(cam.pixel00, scale(w, cam.focus_dist));
     cam.pixel00 = subtract(cam.pixel00, divide(cam.viewport_u, 2));
     cam.pixel00 = subtract(cam.pixel00, divide(cam.viewport_v, 2));
     cam.pixel00 = sum(cam.pixel00, scale(
         sum(cam.pixel_delta_u, cam.pixel_delta_v), 0.5));
+
+    my_decimal defocus_radius = cam.focus_dist * tan(degrees_to_radians(cam.defocus_angle / 2));
+    cam.defocus_disk_u = scale(u, defocus_radius);
+    cam.defocus_disk_v = scale(v, defocus_radius);
 
     return cam;
 }
@@ -80,8 +116,14 @@ t_ray get_random_ray(t_camera *cam, int i, int j) {
     pixel_sample = sum(pixel_sample, scale(cam->pixel_delta_u, i+offset.x));
     pixel_sample = sum(pixel_sample, scale(cam->pixel_delta_v, j+offset.y));
 
-    t_vec3 ray_direction = subtract(pixel_sample, cam->center); 
-    return ray_new(cam->center, ray_direction);   
+    t_vec3 ray_direction = subtract(pixel_sample, cam->center);
+
+    t_point3 p = random_in_unit_disk();
+    t_point3 defocus_disk_sample = cam->center;
+    defocus_disk_sample = sum(defocus_disk_sample, scale(cam->defocus_disk_u, p.x));
+    defocus_disk_sample = sum(defocus_disk_sample, scale(cam->defocus_disk_v, p.y));
+    t_point3 ray_origin = (cam->defocus_angle <= 0) ? cam->center : defocus_disk_sample;
+    return ray_new(cam->center, ray_direction);
 }
 
 // Determining a different color for each of the pixels of the viewport by 

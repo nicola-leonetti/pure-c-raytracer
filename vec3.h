@@ -105,6 +105,16 @@ t_vec3 vec3_random_on_hemisphere(t_vec3 normal) {
     return (dot(v, normal) > 0) ? v : scale(v, -1.0); 
 }
 
+// Random unit vector in a unit disk
+t_vec3 random_in_unit_disk() {
+    while (true) {
+        t_vec3 p = vec3_new(random_my_decimal(-1, 1), random_my_decimal(-1, 1), 0);
+        if (squared_length(p) < 1) {
+            return p;
+        }
+    }
+}
+
 #define NEAR_ZERO(v) \
     (fabs(v.x) < NEAR_ZERO_TRESHOLD) && \
     (fabs(v.y) < NEAR_ZERO_TRESHOLD) && \

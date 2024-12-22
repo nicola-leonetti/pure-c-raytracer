@@ -6,6 +6,7 @@
 #include "material.h"
 #include "sphere.h"
 
+// TODO Take this from a file
 #define NUMBER_OF_SPHERES 5
 t_sphere world[NUMBER_OF_SPHERES] = {
     { // Ground big sphere
@@ -55,8 +56,13 @@ int main() {
     srand((unsigned int) time(NULL));
 
     clock_t start = clock();
-    
-    t_camera cam = camera_new(ASPECT_RATIO, VIEWPORT_WIDTH);
+
+    t_camera cam = camera_new(ASPECT_RATIO, 
+                              VIEWPORT_WIDTH, 
+                              VERTICAL_FOV_DEGREES,
+                              point3_new(-2, 2, 1), point3_new(0, 0, -1),
+                              10.0,
+                              3.4);
     camera_render(&cam, world, NUMBER_OF_SPHERES);
 
     clock_t end  = clock();
