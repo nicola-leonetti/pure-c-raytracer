@@ -9,7 +9,7 @@
 #define NEAR_ZERO_TRESHOLD 1e-8
 
 #define ASPECT_RATIO 16.0/9.0
-#define VIEWPORT_WIDTH 1600
+#define VIEWPORT_WIDTH 400
 
 // How many rays to send inside each square pixel in order to obtain a more 
 // precise color (antialiasing).

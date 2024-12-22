@@ -114,4 +114,14 @@ t_vec3 vec3_random_on_hemisphere(t_vec3 normal) {
 #define REFLECT(v, n) \
     subtract(v, scale(n, 2*dot(v, n)))
 
+// Calculate refracted ray over a surface with given normal and a given ratio 
+// of refractive indexes
+t_vec3 refract(t_vec3 v, t_vec3 n, my_decimal ratio) {
+    my_decimal cos_theta = fmin(dot(negate(v), n), 1.0);
+    t_vec3 out_perpendicular = scale(sum(v, scale(n, cos_theta)), ratio);
+    t_vec3 out_parallel = scale(
+        n, -sqrt(fabs(1 - squared_length(out_perpendicular))));
+    return(sum(out_perpendicular, out_parallel));
+}
+
 #endif

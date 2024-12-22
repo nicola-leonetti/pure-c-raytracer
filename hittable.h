@@ -22,6 +22,7 @@ typedef struct {
     t_material surface_material;
     t_color albedo;
     my_decimal fuzz;
+    my_decimal refraction_index;
 } t_hit_result;
 
 #endif

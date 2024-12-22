@@ -4,6 +4,8 @@
 #include <math.h>
 
 #include "common.h"
+#include "hittable.h"
+#include "material.h"
 #include "point3.h"
 #include "vec3.h"
 
@@ -25,10 +27,63 @@ t_point3 ray_at(const t_ray r, my_decimal t) {
 
 void ray_print(t_ray r) {
     fprintf(stderr, "Ray");
-    printf("  direction=");
+    fprintf(stderr, "\n  direction=");
     vec3_print(r.direction);
-    printf("\n  origin=");
+    fprintf(stderr, "  origin=");
     point3_print(r.origin); 
+}
+
+// Scatters the incident ray based on the material hit
+bool scatter(t_hit_result *hit_result,
+             t_ray *ray_in, 
+             t_color *attenuation, 
+             t_ray *ray_scattered) {
+
+    t_vec3 scatter_direction;
+    switch (hit_result->surface_material) {
+
+        case LAMBERTIAN:
+            scatter_direction = sum(hit_result->normal, vec3_random_unit());
+            scatter_direction = NEAR_ZERO(scatter_direction) ?
+                                    hit_result->normal : scatter_direction;
+            *attenuation = hit_result->albedo;
+            break;
+
+        case METAL:
+            scatter_direction = REFLECT(ray_in->direction, hit_result->normal);
+            scatter_direction = sum(scatter_direction, scale(vec3_random_unit(), hit_result->fuzz));
+            *attenuation = hit_result->albedo;
+            break;
+
+        case DIELECTRIC:
+            my_decimal refraction_index = hit_result->front_face ? 
+                ( 1.0/(hit_result->refraction_index) ) :
+                hit_result->refraction_index;
+            my_decimal cos_theta = fmin(dot(negate(vec3_unit(ray_in->direction)), hit_result->normal), 1.0);
+            my_decimal sin_theta = sqrt(1.0 - cos_theta*cos_theta);
+        
+            // Cannot refract, so it reflects (total internal reflection)
+            // Reflectivity varying based on the angle is given by Shlick's 
+            // Approximation
+            bool cannot_refract = ((refraction_index*sin_theta) > 1.0);
+                scatter_direction = (cannot_refract || reflectance(cos_theta, refraction_index) > random_my_decimal()) ?
+                    REFLECT(vec3_unit(ray_in->direction), hit_result->normal) :
+                    refract(vec3_unit(ray_in->direction), 
+                                vec3_unit(hit_result->normal), 
+                                refraction_index);
+
+            *attenuation = color_new(1.0, 1.0, 1.0);
+            break;
+
+        default:
+            fprintf(stderr, "Material not yet implemented %d! Aborting", 
+                hit_result->surface_material);
+            exit(1);
+        }
+
+        *ray_scattered = ray_new(hit_result->p, scatter_direction);
+        // TODO Understand why
+        return true;
 }
 
 #endif

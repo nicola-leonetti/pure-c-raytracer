@@ -4,6 +4,7 @@
 #include "color.h"
 #include "common.h"
 #include "point3.h"
+#include "ray.h"
 #include "sphere.h"
 #include "vec3.h"
 
@@ -109,31 +110,17 @@ t_color ray_color(t_ray *r, t_sphere world[], int number_of_spheres,
     }
 
     if (*hit_anything) {
-        // Return the color of the scattered ray, if any. 
-        
-        t_vec3 direction;
-        switch (result.surface_material) {
+        t_color attenuation;
+        t_ray scattered_ray;
 
-        case LAMBERTIAN:
-            direction = sum(result.normal, vec3_random_unit());
-            direction = NEAR_ZERO(direction) ? result.normal : direction;
-            break;
-
-        case METAL:
-            direction = REFLECT(r->direction, result.normal);
-            direction = sum(direction, scale(vec3_random_unit(), result.fuzz)); 
-            break;
-
-        default:
-            fprintf(stderr, "Material not yet implemented! Aborting");
-            exit(1);
+        // Return the color of the scattered ray
+        if ( scatter(&result, r, &attenuation, &scattered_ray) ) {
+            t_color scattered_ray_color = ray_color(&scattered_ray, world, 
+                                   number_of_spheres, bounces-1, hit_anything);
+            return mul(attenuation, scattered_ray_color);
         }
 
-        t_ray scattered_ray = ray_new(result.p, direction);
-        t_color scattered_ray_color = ray_color(&scattered_ray, world,
-                                   number_of_spheres, bounces-1, hit_anything);
-        
-        return mul(result.albedo, scattered_ray_color);
+        return COLOR_BLACK;
     }
 
     // If no object is hit, return a blend between blue and white based on the 
