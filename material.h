@@ -10,9 +10,6 @@ typedef enum {
     METAL
 } t_material;
 
-
-
-
 // Lambertian
 
 

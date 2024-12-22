@@ -87,8 +87,9 @@ t_ray get_random_ray(t_camera *cam, int i, int j) {
 // sending one or more rays from the camera center to each pixel 
 t_color ray_color(t_ray *r, t_sphere world[], int number_of_spheres, 
                   int bounces, bool *hit_anything) { 
-    
     *hit_anything = false;
+
+    // Limit the amount of recursive calls
     if (bounces == 0) {
         return COLOR_BLACK;
     }
@@ -109,15 +110,28 @@ t_color ray_color(t_ray *r, t_sphere world[], int number_of_spheres,
 
     if (*hit_anything) {
         // Return the color of the scattered ray, if any. 
-        // To limit recursion depth, after a certain number of recursions black
-        // is returned.
-        t_vec3 direction = sum(result.normal, vec3_random_unit());
-        direction = NEAR_ZERO(direction) ? result.normal : direction;
+        
+        t_vec3 direction;
+        switch (result.surface_material) {
+
+        case LAMBERTIAN:
+            direction = sum(result.normal, vec3_random_unit());
+            direction = NEAR_ZERO(direction) ? result.normal : direction;
+            break;
+
+        case METAL:
+            direction = REFLECT(r->direction, result.normal);
+            direction = sum(direction, scale(vec3_random_unit(), result.fuzz)); 
+            break;
+
+        default:
+            fprintf(stderr, "Material not yet implemented! Aborting");
+            exit(1);
+        }
 
         t_ray scattered_ray = ray_new(result.p, direction);
-        
-        t_color scattered_ray_color = 
-            ray_color(&scattered_ray, world, number_of_spheres, bounces-1, hit_anything);
+        t_color scattered_ray_color = ray_color(&scattered_ray, world,
+                                   number_of_spheres, bounces-1, hit_anything);
         
         return mul(result.albedo, scattered_ray_color);
     }
