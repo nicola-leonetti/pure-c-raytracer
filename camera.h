@@ -78,8 +78,8 @@ t_camera camera_new(my_decimal aspect_ratio,
     t_vec3 u = vec3_unit(cross(cam.up_direction, w));
     t_vec3 v = cross(w, u);
 
-    cam.focus_dist = 10;
-    cam.defocus_angle = 0;
+    cam.focus_dist = focus_dist;
+    cam.defocus_angle = defocus_angle;
 
     cam.viewport_height = \
         2.0 * tan(degrees_to_radians(fov)/2.0) * cam.focus_dist;

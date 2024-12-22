@@ -60,9 +60,10 @@ int main() {
     t_camera cam = camera_new(ASPECT_RATIO, 
                               VIEWPORT_WIDTH, 
                               VERTICAL_FOV_DEGREES,
-                              point3_new(-2, 2, 1), point3_new(0, 0, -1),
-                              10.0,
-                              3.4);
+                              (t_point3) LOOK_FROM, 
+                              (t_point3) LOOK_AT,
+                              FOCUS_DISTANCE,
+                              DEFOCUS_ANGLE);
     camera_render(&cam, world, NUMBER_OF_SPHERES);
 
     clock_t end  = clock();

@@ -10,6 +10,12 @@
 
 #define ASPECT_RATIO 16.0/9.0
 #define VIEWPORT_WIDTH 400
+
+#define LOOK_FROM {-2, 2, 1}
+#define LOOK_AT {0, 0, -1}
+
+#define DEFOCUS_ANGLE 3.4
+#define FOCUS_DISTANCE 10
 #define VERTICAL_FOV_DEGREES 20
 
 // How many rays to send inside each square pixel in order to obtain a more 
