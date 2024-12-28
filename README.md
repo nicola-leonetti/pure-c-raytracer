@@ -7,5 +7,5 @@ The following compiles and runs the program, creating the image file `img.ppm` i
 
 ```bash
 gcc main.c -o main -lm
-main.c > img.ppm
+./main > img.ppm
 ```
