@@ -19,7 +19,7 @@ typedef struct {
     // Set to true if the ray hits the object on its front face
     bool front_face;
 
-    t_material surface_material;
+    material_type surface_material;
     t_color albedo;
     my_decimal fuzz;
     my_decimal refraction_index;

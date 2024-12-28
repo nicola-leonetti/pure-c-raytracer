@@ -11,20 +11,11 @@
 typedef struct {
     t_point3 center;
     my_decimal radius;
-    t_color albedo;
-    t_material surface_material;
-    my_decimal fuzz;
-    my_decimal refraction_index;
+    t_material material;
 } t_sphere;
 
-t_sphere sphere_new(t_point3 center, my_decimal radius, t_color albedo, 
-                                                             my_decimal fuzz) {
-    return (t_sphere) {
-        center, 
-        radius, 
-        albedo, 
-        (fuzz < 1) ? fuzz : 1
-    };
+t_sphere sphere_new(t_point3 center, my_decimal radius, t_material material) {
+    return (t_sphere) { center, radius, material };
 }
 
 // Returns hit point and normal vector of a ray with a sphere.
@@ -74,10 +65,10 @@ t_hit_result sphere_hit(t_ray *r, t_sphere s, my_decimal t_min, my_decimal t_max
     result.front_face = (dot(r->direction, result.normal) < 0);
 
     // TOTO switch to just memorizing the sphere object
-    result.albedo = s.albedo;
-    result.surface_material = s.surface_material;
-    result.fuzz = s.fuzz;
-    result.refraction_index = s.refraction_index;
+    result.albedo = s.material.albedo;
+    result.surface_material = s.material.type;
+    result.fuzz = s.material.fuzz;
+    result.refraction_index = s.material.refraction_index;
 
     // If the ray hits an object from inside (like in dielectrics, I need to 
     // invert the direction of the normal
