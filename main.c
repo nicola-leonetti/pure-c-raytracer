@@ -75,7 +75,7 @@ int main() {
     fprintf(stderr, "Initializing spheres...");
     init_world(world);
     fprintf(stderr, "\r                            \r");
-    fprintf(stderr, "Sfere inizializzate\n");
+    fprintf(stderr, "Spheres initilized\n");
 
     double start = cpuSecond();
 
