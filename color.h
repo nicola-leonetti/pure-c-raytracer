@@ -48,9 +48,14 @@ __host__ __device__ void color_write_at(t_color c, long offset, unsigned char *a
     float g = TO_GAMMA(c.y);
     float b = TO_GAMMA(c.z);
 
+    // printf("%d %d %d",(unsigned char) (255.999 * r), (unsigned char) (255.999 * g), (unsigned char) (255.999 * b) );
+
+    // printf("Scrivo a %ld\n", offset);
     addr[offset] = (unsigned char) (255.999 * r);
     addr[offset+1] = (unsigned char) (255.999 * g);
     addr[offset+2] = (unsigned char) (255.999 * b);
+
+    // printf("%d %d %d\n",addr[offset], addr[offset+1], addr[offset +2] );
 }
 
 #endif 

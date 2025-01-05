@@ -87,9 +87,6 @@ int main() {
     CHECK(cudaMalloc((void**)&d_world, world_size));
     CHECK(cudaMemcpy(d_world, h_world, world_size, cudaMemcpyHostToDevice));
 
-
-    
-
     // TODO Piccola ottimizzazione creare camera direttamente su device
     t_camera cam = camera_new(ASPECT_RATIO, 
                               VIEWPORT_WIDTH, 
@@ -103,7 +100,7 @@ int main() {
     CHECK(cudaMalloc((void**)&d_cam, sizeof(cam)));
     CHECK(cudaMemcpy(d_cam, h_cam, sizeof(cam), cudaMemcpyHostToDevice));
 
-        // Allocate on device one RNG state for each pixel
+    // Allocate on device one RNG state for each pixel
     int number_of_pixels = cam.image_width*cam.image_height;
     curandState *d_random_states;
     CHECK(cudaMalloc(
@@ -119,36 +116,6 @@ int main() {
     CHECK(cudaMemcpy(d_result_img, h_result_img, img_size, cudaMemcpyHostToDevice));
 
     fprintf(
-        stderr,
-        "Launching render kernel with 2D grid shape (%u, %u)\n", 
-        (cam.image_width + block.x - 1) / block.x, 
-        (cam.image_height + block.y - 1) / block.y
-    );
-
-    // CUDA Version
-    // double start = h_cpu_second();
-    // dim3 grid(
-    //     (cam.image_width + block.x - 1) / block.x, 
-    //     (cam.image_height + block.y - 1) / block.y
-    // );
-    // d_camera_render<<<grid, block>>>(
-    //     d_cam,
-    //     d_world,
-    //     NUMBER_OF_SPHERES,
-    //     d_result_img,
-    //     d_random_states
-    // );
-    // cudaDeviceSynchronize();
-    // CHECK(cudaGetLastError());
-    // double end  = h_cpu_second();
-
-    // CPU version
-    double start = h_cpu_second();
-    h_camera_render(&cam, h_world, NUMBER_OF_SPHERES, h_result_img);
-    double end  = h_cpu_second();
-
-    fprintf(stderr, "Computation time: %.6fs\n", end - start);
-        fprintf(
         stderr, 
         "Image size: %dx%d, %d channels, %ld bytes\n", 
         cam.image_height, 
@@ -156,6 +123,39 @@ int main() {
         3,
         img_size
     );
+
+    fprintf(
+        stderr,
+        "Launching render kernel with 2D grid shape (%u, %u)\n", 
+        (cam.image_width + block.x - 1) / block.x, 
+        (cam.image_height + block.y - 1) / block.y
+    );
+
+    // CUDA Version
+    double start = h_cpu_second();
+    dim3 grid(
+        (cam.image_width + block.x - 1) / block.x, 
+        (cam.image_height + block.y - 1) / block.y
+    );
+    d_camera_render<<<grid, block>>>(
+        d_cam,
+        d_world,
+        NUMBER_OF_SPHERES,
+        d_result_img,
+        d_random_states
+    );
+    cudaDeviceSynchronize();
+    CHECK(cudaGetLastError());
+    double end  = h_cpu_second();
+
+    // CPU version
+    // double start = h_cpu_second();
+    // h_camera_render(&cam, h_world, NUMBER_OF_SPHERES, h_result_img);
+    // double end  = h_cpu_second();
+
+    fprintf(stderr, "Computation time: %.6fs\n", end - start);
+
+    CHECK(cudaMemcpy(h_result_img, d_result_img, img_size, cudaMemcpyDeviceToHost));
     h_write_PPM_img_to_stdout(h_result_img, cam.image_width, cam.image_height);
     
     CHECK(cudaFree(d_world));
