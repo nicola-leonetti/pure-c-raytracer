@@ -175,6 +175,52 @@ __host__ void h_ray_color(t_color *color, t_ray *r, t_sphere world[],
     *color = BLEND(vec3_unit(r->direction).y, COLOR_WHITE, COLOR_SKY);
 }
 
+// RICORSIVA
+// // Determining a different color for each of the pixels of the viewport by 
+// // sending one or more rays from the camera center to each pixel 
+// __device__ void d_ray_color(t_color *color, t_ray *r, t_sphere world[], 
+//     int number_of_spheres, int *bounces, curandState *state) { 
+//     bool hit_anything = false;
+
+//     // Limit the amount of recursive calls
+//     if (*bounces == 0) {
+//         *color = COLOR_BLACK;
+//         return;
+//     }
+
+//     t_hit_result temp, result;
+//     my_decimal closest_hit = RAY_T_MAX;
+
+//     // For each sphere, if the ray hits the sphere before all the other spheres
+//     // (0.001 lower bound is used to fix "shadow acne")
+//     for (int i = 0; i < number_of_spheres; i++) {
+//         sphere_hit(&temp, r, world[i], 0.001, closest_hit);
+//         if (temp.did_hit) {
+//             hit_anything = true;
+//             closest_hit = temp.t;
+//             result = temp;
+//         } 
+//     }
+
+//     if (hit_anything) {
+//         // Calculate color and attenuation of the scatered ray
+//         t_color attenuation;
+//         t_ray scattered_ray;
+//         d_scatter(&result, r, &attenuation, &scattered_ray, state);
+
+//         t_color scattered_ray_color;
+//         int next_bounces = (*bounces)-1;
+//         d_ray_color(&scattered_ray_color, &scattered_ray, world, 
+//                         number_of_spheres, &next_bounces, state);
+//         *color = mul(attenuation, scattered_ray_color);
+//         return;
+//     }
+
+//     // If no object is hit, return a blend between blue and white based on the 
+//     // y coordinate, so going vertically from white all the way to blue
+//     *color = BLEND(vec3_unit(r->direction).y, COLOR_WHITE, COLOR_SKY);
+// }
+
 __device__ void d_ray_color(
     t_color *color, 
     t_ray *r, 
@@ -183,49 +229,48 @@ __device__ void d_ray_color(
     int *bounces,
     curandState *state
 ) {
-    // *color = COLOR_WHITE;
-    // t_ray current_ray = *r;
-    // int bounces_remaining = *bounces;
+    *color = COLOR_WHITE;
+    t_ray current_ray = *r;
+    int bounces_remaining = *bounces;
 
-    // while (bounces_remaining > 0) {
-    //     bool hit_anything = false;
+    while (bounces_remaining > 0) {
+        bool hit_anything = false;
 
-    //     t_hit_result temp, result;
-    //     my_decimal closest_hit = RAY_T_MAX;
+        t_hit_result temp, result;
+        my_decimal closest_hit = RAY_T_MAX;
 
     //     // printf("Raggio: (%f %f %f) (%f %f %f)\n", current_ray.direction.x, current_ray.direction.y, current_ray.direction.z,
     //     // current_ray.origin.x, current_ray.origin.y, current_ray.origin.z);
 
-    //     // For each sphere, if the ray hits the sphere before all the other spheres
-    //     // (0.001 lower bound is used to fix "shadow acne")
-    //     for (int i = 0; i < number_of_spheres; i++) {
-    //         sphere_hit(&temp, &current_ray, world[i], 0.001, closest_hit);
-    //         if (temp.did_hit) {
-    //             hit_anything = true;
-    //             closest_hit = temp.t;
-    //             result = temp;
-    //         } 
-    //     }
+        // For each sphere, if the ray hits the sphere before all the other spheres
+        // (0.001 lower bound is used to fix "shadow acne")
+        for (int i = 0; i < number_of_spheres; i++) {
+            sphere_hit(&temp, &current_ray, world[i], 0.001, closest_hit);
+            if (temp.did_hit) {
+                hit_anything = true;
+                closest_hit = temp.t;
+                result = temp;
+            } 
+        }
 
-    //     if (!hit_anything) {
+        if (!hit_anything) {
             // If no object is hit, return a blend between blue and white based on the 
             // y coordinate, so going vertically from white all the way to blue
-            *color = BLEND(vec3_unit(r->direction).y, COLOR_WHITE, COLOR_SKY);
-    //         return;
-    //     }
+            *color = mul(*color, BLEND(vec3_unit(r->direction).y, COLOR_WHITE, COLOR_SKY));
+            break;
+        }
 
-    //     // Calculate color and attenuation of the scattered ray
-    //     t_color attenuation;
-    //     t_ray scattered_ray;
-    //     d_scatter(&result, r, &attenuation, &scattered_ray, state);
-    //     // printf("Attenuation calcolata: %f %f %f\n", attenuation.x, attenuation.y, attenuation.z);
+        // Calculate color and attenuation of the scattered ray
+        t_color attenuation;
+        t_ray scattered_ray;
+        d_scatter(&result, r, &attenuation, &scattered_ray, state);
+        // printf("Attenuation calcolata: %f %f %f\n", attenuation.x, attenuation.y, attenuation.z);
         
-    //     *color = attenuation;
-    //     // *color = mul(*color, attenuation);
-    //     current_ray = scattered_ray;
-    //     bounces_remaining--;
-    //     // printf("Bounces %d\n", bounces_remaining);
-    // }
+        *color = mul(*color, attenuation);
+        current_ray = scattered_ray;
+        bounces_remaining--;
+        // printf("Bounces %d\n", bounces_remaining);
+    }
 }
 
 void h_camera_render(t_camera *cam, t_sphere world[], int number_of_spheres, 
@@ -293,10 +338,8 @@ __global__ void d_camera_render(
             d_ray_color(&sampled_color, &random_ray, world, 
                 number_of_spheres, &max_ray_bounces, &state);
             pixel_color = sum(pixel_color, sampled_color);
-            // printf("Colore calcolato sommando: %f %f %f\n", pixel_color.x, pixel_color.y, pixel_color.z);
         }
         pixel_color = divide(pixel_color, SAMPLES_PER_PIXEL);
-        // printf("Colore diviso: %f %f %f\n", pixel_color.x, pixel_color.y, pixel_color.z);
 
         color_write_at(pixel_color, rgb_offset, result_img);
     }
