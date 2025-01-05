@@ -3,6 +3,11 @@
 
 #define my_decimal double
 
+#define RNG_SEED 1
+
+// CUDA block size
+dim3 block(8,8); 
+
 // Minimum value that is safe to square without underflow
 #define MY_DECIMAL_UNDERFLOW_LIMIT 1e-18
 
@@ -30,7 +35,7 @@
 
 // How many rays to send inside each square pixel in order to obtain a more 
 // precise color (antialiasing).
-#define SAMPLES_PER_PIXEL 1
+#define SAMPLES_PER_PIXEL 2
 
 // Limit to how many times a ray can bounce from a surface to another before 
 // determining its color. This is done in order to avoid stack overflow
