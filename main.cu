@@ -32,33 +32,33 @@ __host__ void h_init_world(t_sphere *world) {
     for (int a = -11; a < 11; a++) {
         for (int b = -11; b < 11; b++) {
             // Randomize material choice
-            my_decimal choose_mat = h_random_my_decimal();
+            float choose_mat = h_random_float();
             t_point3 center = point3_new(
-                a + 0.9 * h_random_my_decimal(), 
+                a + 0.9 * h_random_float(), 
                 0.2, 
-                b + 0.9 * h_random_my_decimal()
+                b + 0.9 * h_random_float()
             );
             t_material sphere_material;
 
             if (choose_mat < 0.8) {
                 // Lambertian (diffuse)
                 sphere_material = new_lambertian(
-                    color_new(h_random_my_decimal()*h_random_my_decimal(), 
-                              h_random_my_decimal()*h_random_my_decimal(), 
-                              h_random_my_decimal()*h_random_my_decimal()
+                    color_new(h_random_float()*h_random_float(), 
+                              h_random_float()*h_random_float(), 
+                              h_random_float()*h_random_float()
                             ));
                 world[index++] = sphere_new(center, 0.2, sphere_material);
             } 
             else if (choose_mat < 0.95) {
                 // Metal
                 t_color color = color_new(
-                    h_random_my_decimal_in(0.5, 1), 
-                    h_random_my_decimal_in(0.5, 1), 
-                    h_random_my_decimal_in(0.5, 1)
+                    h_random_float_in(0.5, 1), 
+                    h_random_float_in(0.5, 1), 
+                    h_random_float_in(0.5, 1)
                 );
                 sphere_material = new_metal(
                     color, 
-                    h_random_my_decimal_in(0, 0.5)
+                    h_random_float_in(0, 0.5)
                 );
                 world[index++] = sphere_new(center, 0.2, sphere_material);
             } 

@@ -1,15 +1,13 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
-#define my_decimal double
-
 #define RNG_SEED 1
 
 // CUDA block size
 dim3 block(8,8); 
 
 // Minimum value that is safe to square without underflow
-#define MY_DECIMAL_UNDERFLOW_LIMIT 1e-18
+#define float_UNDERFLOW_LIMIT 1e-18
 
 #define NEAR_ZERO_TRESHOLD 1e-8
 

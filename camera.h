@@ -37,13 +37,13 @@ typedef struct {
 
 // Constructor
 t_camera camera_new(
-    my_decimal aspect_ratio, 
+    float aspect_ratio, 
     int image_width, 
-    my_decimal vertical_fov,
+    float vertical_fov,
     t_point3 look_from, 
     t_point3 look_at,
-    my_decimal defocus_angle,
-    my_decimal focus_distance
+    float defocus_angle,
+    float focus_distance
 ) {
     t_camera cam;
 
@@ -57,9 +57,9 @@ t_camera camera_new(
     t_vec3 w = vec3_unit(subtract(look_from, look_at));
     t_vec3 u = vec3_unit(cross((t_vec3) UP_DIRECTION, w));
     t_vec3 v = cross(w, u);
-    my_decimal viewport_height = \
+    float viewport_height = \
         2.0 * tan(degrees_to_radians(vertical_fov)/2.0) * focus_distance;
-    my_decimal viewport_width = viewport_height * image_width/cam.image_height;
+    float viewport_width = viewport_height * image_width/cam.image_height;
     t_vec3 viewport_u = scale(u, viewport_width);
     t_vec3 viewport_v = scale(v, -viewport_height);
     cam.pixel_delta_u = divide(viewport_u, cam.image_width);
@@ -75,7 +75,7 @@ t_camera camera_new(
         sum(cam.pixel_delta_u, cam.pixel_delta_v), 0.5));
 
     // defocus_disk_u, defocus_disk_v
-    my_decimal defocus_radius = \
+    float defocus_radius = \
         focus_distance * tan(degrees_to_radians(defocus_angle / 2));
     cam.defocus_disk_u = scale(u, defocus_radius);
     cam.defocus_disk_v = scale(v, defocus_radius);
@@ -88,8 +88,8 @@ __host__ void h_get_random_ray(t_ray *r, t_camera *cam, int i, int j) {
     // Offset from the center of the vector generated in the unit square
     // [-0.5, 0.5]x[-0.5, 0.5]
     t_vec3 offset  = vec3_new(
-        h_random_my_decimal() - 0.5, 
-        h_random_my_decimal() - 0.5, 
+        h_random_float() - 0.5, 
+        h_random_float() - 0.5, 
         0.0
     );
 
@@ -119,8 +119,8 @@ __device__ void d_get_random_ray(
 ) {
     // Offset from the center of the vector generated in the unit square
     // [-0.5, 0.5]x[-0.5, 0.5]
-    t_vec3 offset  = vec3_new(d_random_my_decimal(state) - 0.5, 
-                            d_random_my_decimal(state) - 0.5, 0.0);
+    t_vec3 offset  = vec3_new(d_random_float(state) - 0.5, 
+                            d_random_float(state) - 0.5, 0.0);
 
     // Use the offset to select a random point inside the (i, j) pixel
     t_point3 pixel_sample = cam->pixel00;
@@ -158,7 +158,7 @@ __host__ void h_ray_color(
     }
 
     t_hit_result temp, result;
-    my_decimal closest_hit = RAY_T_MAX;
+    float closest_hit = RAY_T_MAX;
 
     // For each sphere, if the ray hits the sphere before all the other spheres
     // (0.001 lower bound is used to fix "shadow acne")
@@ -206,7 +206,7 @@ __device__ void d_ray_color(
         bool hit_anything = false;
 
         t_hit_result temp, result;
-        my_decimal closest_hit = RAY_T_MAX;
+        float closest_hit = RAY_T_MAX;
 
         // For each sphere, if the ray hits the sphere before all the other 
         // spheres (0.001 lower bound is used to fix "shadow acne")

@@ -27,7 +27,7 @@ __host__ __device__ t_ray ray_new(
 __host__ __device__ void ray_at(
     t_point3 *point,
     const t_ray r, 
-    my_decimal t
+    float t
 ) {
     *point = sum(r.origin, scale(r.direction, t));
 }
@@ -49,7 +49,7 @@ __host__ void h_scatter(
 ) {
 
     t_vec3 scatter_direction;
-    my_decimal refraction_index, cos_theta, sin_theta;
+    float refraction_index, cos_theta, sin_theta;
     bool cannot_refract;
     switch (hit_result->surface_material) {
 
@@ -85,7 +85,7 @@ __host__ void h_scatter(
             // Approximation
             cannot_refract = ((refraction_index*sin_theta) > 1.0);
             scatter_direction = (cannot_refract || \
-            reflectance(cos_theta, refraction_index) > h_random_my_decimal()) ?
+            reflectance(cos_theta, refraction_index) > h_random_float()) ?
                 REFLECT(vec3_unit(ray_in->direction), hit_result->normal) :
                 refract(vec3_unit(ray_in->direction), 
                             vec3_unit(hit_result->normal), 
@@ -111,7 +111,7 @@ __device__ void d_scatter(
 ) {
 
     t_vec3 scatter_direction;
-    my_decimal refraction_index, cos_theta, sin_theta;
+    float refraction_index, cos_theta, sin_theta;
     bool cannot_refract;
     switch (hit_result->surface_material) {
 
@@ -140,7 +140,7 @@ __device__ void d_scatter(
                 hit_result->refraction_index;
             cos_theta = fmin(
                 dot(negate(vec3_unit(ray_in->direction)), hit_result->normal), 
-                1.0
+                1.0F
             );
             sin_theta = sqrt(1.0 - cos_theta*cos_theta);
         
@@ -150,7 +150,7 @@ __device__ void d_scatter(
             cannot_refract = ((refraction_index*sin_theta) > 1.0);
             scatter_direction = (cannot_refract || \
                                  reflectance(cos_theta, refraction_index) \
-                                 > d_random_my_decimal(state)) ?
+                                 > d_random_float(state)) ?
                 REFLECT(vec3_unit(ray_in->direction), hit_result->normal) :
                 refract(vec3_unit(ray_in->direction), 
                             vec3_unit(hit_result->normal), 

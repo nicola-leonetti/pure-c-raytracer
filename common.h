@@ -11,27 +11,27 @@
 
 #define PI 3.14159265358979323846
 
-// Returns a my_decimal in [0, 1)
-__host__ my_decimal h_random_my_decimal() {
-    return ((my_decimal) rand()) / ((my_decimal) RAND_MAX + 1);
+// Returns a float in [0, 1)
+__host__ float h_random_float() {
+    return ((float) rand()) / ((float) RAND_MAX + 1);
 }
-__device__ my_decimal d_random_my_decimal(curandState *state) {
-    return (my_decimal) curand_uniform(state);
+__device__ float d_random_float(curandState *state) {
+    return (float) curand_uniform(state);
 }
 
-// Returns a my_decimal in [min, max)
-__host__ my_decimal h_random_my_decimal_in(my_decimal min, my_decimal max) {
-    return min + (max-min)*h_random_my_decimal();
+// Returns a float in [min, max)
+__host__ float h_random_float_in(float min, float max) {
+    return min + (max-min)*h_random_float();
 }
-__device__ my_decimal d_random_my_decimal_in(
-    my_decimal min, 
-    my_decimal max, 
+__device__ float d_random_float_in(
+    float min, 
+    float max, 
     curandState *state
 ) {
-    return min + (max-min)*d_random_my_decimal(state);
+    return min + (max-min)*d_random_float(state);
 }
 
-__host__ __device__ my_decimal degrees_to_radians(my_decimal deg) {
+__host__ __device__ float degrees_to_radians(float deg) {
     return (deg*PI) / 180.0;
 }
 

@@ -6,13 +6,13 @@
 
 #include "common.h"
 
-typedef struct { my_decimal x, y, z; } t_vec3;
+typedef struct { float x, y, z; } t_vec3;
 
 // Constructor
 __host__ __device__ t_vec3 vec3_new(
-    my_decimal e0, 
-    my_decimal e1, 
-    my_decimal e2
+    float e0, 
+    float e1, 
+    float e2
 ) {
     return (t_vec3) {e0, e1, e2};
 }
@@ -25,19 +25,19 @@ __host__ __device__ t_vec3 subtract(t_vec3 u, t_vec3 v) {
     return vec3_new((u.x)-(v.x), (u.y)-(v.y), (u.z)-(v.z));
 }
     
-__host__ __device__ my_decimal squared_length(t_vec3 v) {
+__host__ __device__ float squared_length(t_vec3 v) {
     return (v.x)*(v.x) + (v.y)*(v.y) + (v.z)*(v.z);
 }
 
-__host__ __device__ my_decimal length(t_vec3 v) {
+__host__ __device__ float length(t_vec3 v) {
     return sqrt(squared_length(v));
 }
 
-__host__ __device__ t_vec3 scale(t_vec3 v, my_decimal t) {
+__host__ __device__ t_vec3 scale(t_vec3 v, float t) {
     return vec3_new(t*(v.x), t*(v.y), t*(v.z));
 }
 
-__host__ __device__ t_vec3 divide(t_vec3 v, my_decimal t) {
+__host__ __device__ t_vec3 divide(t_vec3 v, float t) {
     return scale(v, 1.0/t);
 }
 
@@ -56,7 +56,7 @@ __host__ __device__ t_vec3 mul(t_vec3 u, t_vec3 v) {
 }
 
 // Dot product
-__host__ __device__ my_decimal dot(t_vec3 u, t_vec3 v) {
+__host__ __device__ float dot(t_vec3 u, t_vec3 v) {
     return (u.x)*(v.x) + (u.y)*(v.y) + (u.z)*(v.z);
 }
 
@@ -76,16 +76,16 @@ __host__ void vec3_print(t_vec3 v) {
 // Random vector with each component in [0, 1)
 __host__ t_vec3 h_vec3_random() {
     return (t_vec3) {
-        h_random_my_decimal(), 
-        h_random_my_decimal(), 
-        h_random_my_decimal()
+        h_random_float(), 
+        h_random_float(), 
+        h_random_float()
     };
 }
 __device__ t_vec3 d_vec3_random(curandState *state) {
     return (t_vec3) {
-        d_random_my_decimal(state), 
-        d_random_my_decimal(state), 
-        d_random_my_decimal(state)
+        d_random_float(state), 
+        d_random_float(state), 
+        d_random_float(state)
     };
 }
 
@@ -94,8 +94,8 @@ __device__ t_vec3 d_vec3_random(curandState *state) {
 __host__ t_vec3 h_vec3_random_unit() {
     while (true) {
         t_vec3 point = h_vec3_random();
-        my_decimal length_squared = squared_length(point);
-        if (MY_DECIMAL_UNDERFLOW_LIMIT < length_squared && \
+        float length_squared = squared_length(point);
+        if (float_UNDERFLOW_LIMIT < length_squared && \
                                          length_squared <= 1) {
             return divide(point, sqrt(length_squared));
         }
@@ -104,8 +104,8 @@ __host__ t_vec3 h_vec3_random_unit() {
 __device__ t_vec3 d_vec3_random_unit(curandState *state) {
     while (true) {
         t_vec3 point = d_vec3_random(state);
-        my_decimal length_squared = squared_length(point);
-        if (MY_DECIMAL_UNDERFLOW_LIMIT < length_squared && \
+        float length_squared = squared_length(point);
+        if (float_UNDERFLOW_LIMIT < length_squared && \
                                          length_squared <= 1) {
             return divide(point, sqrt(length_squared));
         }
@@ -116,8 +116,8 @@ __device__ t_vec3 d_vec3_random_unit(curandState *state) {
 __host__ t_vec3 h_random_in_unit_disk() {
     while (true) {
         t_vec3 p = vec3_new(
-            h_random_my_decimal_in(-1, 1), 
-            h_random_my_decimal_in(-1, 1), 
+            h_random_float_in(-1, 1), 
+            h_random_float_in(-1, 1), 
             0
         );
         if (squared_length(p) < 1) {
@@ -128,8 +128,8 @@ __host__ t_vec3 h_random_in_unit_disk() {
 __device__ t_vec3 d_random_in_unit_disk(curandState *state) {
     while (true) {
         t_vec3 p = vec3_new(
-            d_random_my_decimal_in(-1, 1, state), 
-            d_random_my_decimal_in(-1, 1, state), 
+            d_random_float_in(-1, 1, state), 
+            d_random_float_in(-1, 1, state), 
             0);
         if (squared_length(p) < 1) {
             return p;
@@ -148,8 +148,8 @@ __device__ t_vec3 d_random_in_unit_disk(curandState *state) {
 
 // Calculate refracted ray over a surface with given normal and a given ratio 
 // of refractive indexes
-__host__ __device__ t_vec3 refract(t_vec3 v, t_vec3 n, my_decimal ratio) {
-    my_decimal cos_theta = fmin(dot(negate(v), n), 1.0);
+__host__ __device__ t_vec3 refract(t_vec3 v, t_vec3 n, float ratio) {
+    float cos_theta = fmin(dot(negate(v), n), 1.0F);
     t_vec3 out_perpendicular = scale(sum(v, scale(n, cos_theta)), ratio);
     t_vec3 out_parallel = scale(
         n, -sqrt(fabs(1 - squared_length(out_perpendicular))));

@@ -9,7 +9,7 @@
 // Stores some information about a ray hitting a hittable object
 typedef struct {
     bool did_hit;
-    my_decimal t;
+    float t;
     t_point3 p;
 
     // Always points towards outside the surface.
@@ -21,8 +21,8 @@ typedef struct {
 
     material_type surface_material;
     t_color albedo;
-    my_decimal fuzz;
-    my_decimal refraction_index;
+    float fuzz;
+    float refraction_index;
 } t_hit_result;
 
 #endif
