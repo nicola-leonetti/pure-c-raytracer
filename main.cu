@@ -90,7 +90,7 @@ int main() {
     print_device_info(0);
 
     // Initialize RNG
-    srand((unsigned int) time(NULL));
+    srand((unsigned int) RNG_SEED);
     
     // Initialize spheres on host
     int world_size = NUMBER_OF_SPHERES*sizeof(t_sphere);
