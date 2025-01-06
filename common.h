@@ -20,10 +20,14 @@ __device__ my_decimal d_random_my_decimal(curandState *state) {
 }
 
 // Returns a my_decimal in [min, max)
-__host__ my_decimal h_random_my_decimal_in(my_decimal min, my_decimal max) {;
+__host__ my_decimal h_random_my_decimal_in(my_decimal min, my_decimal max) {
     return min + (max-min)*h_random_my_decimal();
 }
-__device__ my_decimal d_random_my_decimal_in(my_decimal min, my_decimal max, curandState *state) {;
+__device__ my_decimal d_random_my_decimal_in(
+    my_decimal min, 
+    my_decimal max, 
+    curandState *state
+) {
     return min + (max-min)*d_random_my_decimal(state);
 }
 
@@ -38,7 +42,12 @@ __host__ __device__ my_decimal degrees_to_radians(my_decimal deg) {
     if (error != cudaSuccess) \
     { \
         fprintf(stderr, "Error: %s:%d, ", __FILE__, __LINE__); \
-        fprintf(stderr, "code: %d, reason: %s\n", error, cudaGetErrorString(error)); \
+        fprintf( \
+            stderr, \
+            "code: %d, reason: %s\n", \
+            error, \
+            cudaGetErrorString(error) \
+        ); \
         exit(1); \
     } \
 }

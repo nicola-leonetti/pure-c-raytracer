@@ -15,13 +15,20 @@ typedef struct {
 } t_ray;
 
 // Constructor
-__host__ __device__ t_ray ray_new(const t_point3 origin, const t_vec3 direction) {
+__host__ __device__ t_ray ray_new(
+    const t_point3 origin, 
+    const t_vec3 direction
+) {
     t_ray r = {origin, direction};
     return r;
 }
 
 // Function to get the point at a given time t along the ray
-__host__ __device__ void ray_at(t_point3 *point,const t_ray r, my_decimal t) {
+__host__ __device__ void ray_at(
+    t_point3 *point,
+    const t_ray r, 
+    my_decimal t
+) {
     *point = sum(r.origin, scale(r.direction, t));
 }
 
@@ -55,7 +62,11 @@ __host__ void h_scatter(
 
         case METAL:
             scatter_direction = REFLECT(ray_in->direction, hit_result->normal);
-            scatter_direction = sum(scatter_direction, scale(h_vec3_random_unit(), hit_result->fuzz));
+            scatter_direction = sum(
+                scatter_direction, 
+                scale(h_vec3_random_unit(), 
+                hit_result->fuzz
+            ));
             *attenuation = hit_result->albedo;
             break;
 
@@ -63,14 +74,18 @@ __host__ void h_scatter(
             refraction_index = hit_result->front_face ? 
                 ( 1.0/(hit_result->refraction_index) ) :
                 hit_result->refraction_index;
-            cos_theta = fmin(dot(negate(vec3_unit(ray_in->direction)), hit_result->normal), 1.0);
+            cos_theta = fmin(
+                dot(negate(vec3_unit(ray_in->direction)), hit_result->normal), 
+                1.0
+            );
             sin_theta = sqrt(1.0 - cos_theta*cos_theta);
         
             // Cannot refract, so it reflects (total internal reflection)
             // Reflectivity varying based on the angle is given by Shlick's 
             // Approximation
             cannot_refract = ((refraction_index*sin_theta) > 1.0);
-            scatter_direction = (cannot_refract || reflectance(cos_theta, refraction_index) > h_random_my_decimal()) ?
+            scatter_direction = (cannot_refract || \
+            reflectance(cos_theta, refraction_index) > h_random_my_decimal()) ?
                 REFLECT(vec3_unit(ray_in->direction), hit_result->normal) :
                 refract(vec3_unit(ray_in->direction), 
                             vec3_unit(hit_result->normal), 
@@ -101,7 +116,10 @@ __device__ void d_scatter(
     switch (hit_result->surface_material) {
 
         case LAMBERTIAN:
-            scatter_direction = sum(hit_result->normal, d_vec3_random_unit(state));
+            scatter_direction = sum(
+                hit_result->normal, 
+                d_vec3_random_unit(state)
+            );
             scatter_direction = NEAR_ZERO(scatter_direction) ?
                                     hit_result->normal : scatter_direction;
             *attenuation = hit_result->albedo;
@@ -109,7 +127,10 @@ __device__ void d_scatter(
 
         case METAL:
             scatter_direction = REFLECT(ray_in->direction, hit_result->normal);
-            scatter_direction = sum(scatter_direction, scale(d_vec3_random_unit(state), hit_result->fuzz));
+            scatter_direction = sum(
+                scatter_direction, 
+                scale(d_vec3_random_unit(state), hit_result->fuzz)
+            );
             *attenuation = hit_result->albedo;
             break;
 
@@ -117,14 +138,19 @@ __device__ void d_scatter(
             refraction_index = hit_result->front_face ? 
                 ( 1.0/(hit_result->refraction_index) ) :
                 hit_result->refraction_index;
-            cos_theta = fmin(dot(negate(vec3_unit(ray_in->direction)), hit_result->normal), 1.0);
+            cos_theta = fmin(
+                dot(negate(vec3_unit(ray_in->direction)), hit_result->normal), 
+                1.0
+            );
             sin_theta = sqrt(1.0 - cos_theta*cos_theta);
         
             // Cannot refract, so it reflects (total internal reflection)
             // Reflectivity varying based on the angle is given by Shlick's 
             // Approximation
             cannot_refract = ((refraction_index*sin_theta) > 1.0);
-            scatter_direction = (cannot_refract || reflectance(cos_theta, refraction_index) > d_random_my_decimal(state)) ?
+            scatter_direction = (cannot_refract || \
+                                 reflectance(cos_theta, refraction_index) \
+                                 > d_random_my_decimal(state)) ?
                 REFLECT(vec3_unit(ray_in->direction), hit_result->normal) :
                 refract(vec3_unit(ray_in->direction), 
                             vec3_unit(hit_result->normal), 

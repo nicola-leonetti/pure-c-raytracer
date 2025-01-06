@@ -33,7 +33,11 @@ __host__ void h_init_world(t_sphere *world) {
         for (int b = -11; b < 11; b++) {
             // Randomize material choice
             my_decimal choose_mat = h_random_my_decimal();
-            t_point3 center = point3_new(a + 0.9 * h_random_my_decimal(), 0.2, b + 0.9 * h_random_my_decimal());
+            t_point3 center = point3_new(
+                a + 0.9 * h_random_my_decimal(), 
+                0.2, 
+                b + 0.9 * h_random_my_decimal()
+            );
             t_material sphere_material;
 
             if (choose_mat < 0.8) {
@@ -47,8 +51,15 @@ __host__ void h_init_world(t_sphere *world) {
             } 
             else if (choose_mat < 0.95) {
                 // Metal
-                t_color color = color_new(h_random_my_decimal_in(0.5, 1), h_random_my_decimal_in(0.5, 1), h_random_my_decimal_in(0.5, 1));
-                sphere_material = new_metal(color, h_random_my_decimal_in(0, 0.5));
+                t_color color = color_new(
+                    h_random_my_decimal_in(0.5, 1), 
+                    h_random_my_decimal_in(0.5, 1), 
+                    h_random_my_decimal_in(0.5, 1)
+                );
+                sphere_material = new_metal(
+                    color, 
+                    h_random_my_decimal_in(0, 0.5)
+                );
                 world[index++] = sphere_new(center, 0.2, sphere_material);
             } 
             else {
@@ -63,7 +74,11 @@ __host__ void h_init_world(t_sphere *world) {
     fprintf(stderr, "Spheres initilized\n");
 }
 
-__host__ void h_write_PPM_img_to_stdout(unsigned char *img, int width, int height) {
+__host__ void h_write_PPM_img_to_stdout(
+    unsigned char *img, 
+    int width, 
+    int height
+) {
     // PPM header
     printf("P3\n%d %d\n255\n", width, height);
     for (int pixel = 0; pixel < width*height*3; pixel+=3) {
@@ -113,7 +128,12 @@ int main() {
     unsigned char *h_result_img = (unsigned char*) malloc(img_size);
     unsigned char *d_result_img;
     CHECK(cudaMalloc((void**)&d_result_img, img_size));
-    CHECK(cudaMemcpy(d_result_img, h_result_img, img_size, cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(
+        d_result_img, 
+        h_result_img, 
+        img_size, 
+        cudaMemcpyHostToDevice
+    ));
 
     fprintf(
         stderr, 
@@ -155,7 +175,12 @@ int main() {
 
     fprintf(stderr, "Computation time: %.6fs\n", end - start);
 
-    CHECK(cudaMemcpy(h_result_img, d_result_img, img_size, cudaMemcpyDeviceToHost));
+    CHECK(cudaMemcpy(
+        h_result_img, 
+        d_result_img, 
+        img_size, 
+        cudaMemcpyDeviceToHost
+    ));
     h_write_PPM_img_to_stdout(h_result_img, cam.image_width, cam.image_height);
     
     CHECK(cudaFree(d_world));

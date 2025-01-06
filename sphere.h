@@ -14,14 +14,24 @@ typedef struct {
     t_material material;
 } t_sphere;
 
-__host__ __device__ t_sphere sphere_new(t_point3 center, my_decimal radius, t_material material) {
+__host__ __device__ t_sphere sphere_new(
+    t_point3 center, 
+    my_decimal radius, 
+    t_material material
+) {
     return (t_sphere) { center, radius, material };
 }
 
 // Returns hit point and normal vector of a ray with a sphere.
 // For the details of how this calculation is performed, refer to the sources 
 // in README.md
-__host__ __device__ void sphere_hit(t_hit_result *result, t_ray *r, t_sphere s, my_decimal t_min, my_decimal t_max) {
+__host__ __device__ void sphere_hit(
+    t_hit_result *result, 
+    t_ray *r, 
+    t_sphere s, 
+    my_decimal t_min, 
+    my_decimal t_max
+) {
 
     t_vec3 oc = subtract(s.center, r->origin);
 

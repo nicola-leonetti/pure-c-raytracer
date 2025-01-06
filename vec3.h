@@ -9,7 +9,11 @@
 typedef struct { my_decimal x, y, z; } t_vec3;
 
 // Constructor
-__host__ __device__ t_vec3 vec3_new(my_decimal e0, my_decimal e1, my_decimal e2) {
+__host__ __device__ t_vec3 vec3_new(
+    my_decimal e0, 
+    my_decimal e1, 
+    my_decimal e2
+) {
     return (t_vec3) {e0, e1, e2};
 }
 
@@ -91,7 +95,8 @@ __host__ t_vec3 h_vec3_random_unit() {
     while (true) {
         t_vec3 point = h_vec3_random();
         my_decimal length_squared = squared_length(point);
-        if (MY_DECIMAL_UNDERFLOW_LIMIT < length_squared && length_squared <= 1) {
+        if (MY_DECIMAL_UNDERFLOW_LIMIT < length_squared && \
+                                         length_squared <= 1) {
             return divide(point, sqrt(length_squared));
         }
     }
@@ -100,7 +105,8 @@ __device__ t_vec3 d_vec3_random_unit(curandState *state) {
     while (true) {
         t_vec3 point = d_vec3_random(state);
         my_decimal length_squared = squared_length(point);
-        if (MY_DECIMAL_UNDERFLOW_LIMIT < length_squared && length_squared <= 1) {
+        if (MY_DECIMAL_UNDERFLOW_LIMIT < length_squared && \
+                                         length_squared <= 1) {
             return divide(point, sqrt(length_squared));
         }
     }
@@ -109,7 +115,11 @@ __device__ t_vec3 d_vec3_random_unit(curandState *state) {
 // Random unit vector in a unit disk
 __host__ t_vec3 h_random_in_unit_disk() {
     while (true) {
-        t_vec3 p = vec3_new(h_random_my_decimal_in(-1, 1), h_random_my_decimal_in(-1, 1), 0);
+        t_vec3 p = vec3_new(
+            h_random_my_decimal_in(-1, 1), 
+            h_random_my_decimal_in(-1, 1), 
+            0
+        );
         if (squared_length(p) < 1) {
             return p;
         }
@@ -117,7 +127,10 @@ __host__ t_vec3 h_random_in_unit_disk() {
 }
 __device__ t_vec3 d_random_in_unit_disk(curandState *state) {
     while (true) {
-        t_vec3 p = vec3_new(d_random_my_decimal_in(-1, 1, state), d_random_my_decimal_in(-1, 1, state), 0);
+        t_vec3 p = vec3_new(
+            d_random_my_decimal_in(-1, 1, state), 
+            d_random_my_decimal_in(-1, 1, state), 
+            0);
         if (squared_length(p) < 1) {
             return p;
         }

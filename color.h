@@ -21,21 +21,25 @@
 
 // Return a blend (lerp) going  from  color1 and color2 based on blend factor a
 #define BLEND(a, color1, color2) \
-        sum(scale(color1, (0.5 * (1.0 - a))), \
-        scale(color2, (0.5 * (1.0 + a))))
+    sum(scale(color1, (0.5 * (1.0 - a))), \
+    scale(color2, (0.5 * (1.0 + a))))
 
-#define TO_GAMMA(a) \
-        (a > 0) ? sqrt(a) : a
+#define TO_GAMMA(a) (a > 0) ? sqrt(a) : a
 
 // Prints color to stderr in readable format
 __host__ void color_print(t_color c) {
     fprintf(stderr, "%d %d %d\n", 
-            (int) (255.999 * c.x), 
-            (int) (255.999 * c.y), 
-            (int) (255.999 * c.z));
+        (int) (255.999 * c.x), 
+        (int) (255.999 * c.y), 
+        (int) (255.999 * c.z)
+    );
 }
 
-__host__ __device__ void color_write_at(t_color c, long offset, unsigned char *addr) {
+__host__ __device__ void color_write_at(
+    t_color c, 
+    long offset, 
+    unsigned char *addr
+) {
     // Clamp color RGB components to interval [0, 0.999]
     c.x = (c.x > 0.999) ? 0.999 : c.x;
     c.y = (c.y > 0.999) ? 0.999 : c.y;

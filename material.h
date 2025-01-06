@@ -14,14 +14,9 @@ typedef enum {
 typedef struct {
     material_type type;
 
-    // For lambertian and metal
-    t_color albedo;
-
-    // For metal
-    my_decimal fuzz;
-
-    // For dielectric
-    my_decimal refraction_index;
+    t_color albedo; // For lambertian and metal
+    my_decimal fuzz; // For metal
+    my_decimal refraction_index; // For dielectric
 } t_material;
 
 __host__ __device__ t_material new_lambertian(t_color albedo) {
@@ -52,7 +47,10 @@ __host__ __device__ t_material new_dielectric(my_decimal refraction_index) {
 }
 
 // Reflectance of a dielectric
-__host__ __device__ my_decimal reflectance(my_decimal cosine, my_decimal refraction_index) {
+__host__ __device__ my_decimal reflectance(
+    my_decimal cosine, 
+    my_decimal refraction_index
+) {
     my_decimal r0 = (1 - refraction_index) / (1 + refraction_index);
     r0 = r0*r0;
     return r0 + (1-r0)*pow((1 - cosine), 5);
