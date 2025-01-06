@@ -38,11 +38,11 @@ __host__ __device__ t_vec3 scale(t_vec3 v, float t) {
 }
 
 __host__ __device__ t_vec3 divide(t_vec3 v, float t) {
-    return scale(v, 1.0/t);
+    return scale(v, 1.0F/t);
 }
 
 __host__ __device__ t_vec3 negate(const t_vec3 v) {
-    return scale(v, -1);
+    return scale(v, -1.0F);
 }
 
 // Returns vector with same direction and unitary length
@@ -96,7 +96,7 @@ __host__ t_vec3 h_vec3_random_unit() {
         t_vec3 point = h_vec3_random();
         float length_squared = squared_length(point);
         if (float_UNDERFLOW_LIMIT < length_squared && \
-                                         length_squared <= 1) {
+                                         length_squared <= 1.0F) {
             return divide(point, sqrt(length_squared));
         }
     }
@@ -106,7 +106,7 @@ __device__ t_vec3 d_vec3_random_unit(curandState *state) {
         t_vec3 point = d_vec3_random(state);
         float length_squared = squared_length(point);
         if (float_UNDERFLOW_LIMIT < length_squared && \
-                                         length_squared <= 1) {
+                                         length_squared <= 1.0F) {
             return divide(point, sqrt(length_squared));
         }
     }
@@ -116,11 +116,11 @@ __device__ t_vec3 d_vec3_random_unit(curandState *state) {
 __host__ t_vec3 h_random_in_unit_disk() {
     while (true) {
         t_vec3 p = vec3_new(
-            h_random_float_in(-1, 1), 
-            h_random_float_in(-1, 1), 
+            h_random_float_in(-1.0F, 1.0F), 
+            h_random_float_in(-1.0F, 1.0F), 
             0
         );
-        if (squared_length(p) < 1) {
+        if (squared_length(p) < 1.0F) {
             return p;
         }
     }
@@ -128,10 +128,10 @@ __host__ t_vec3 h_random_in_unit_disk() {
 __device__ t_vec3 d_random_in_unit_disk(curandState *state) {
     while (true) {
         t_vec3 p = vec3_new(
-            d_random_float_in(-1, 1, state), 
-            d_random_float_in(-1, 1, state), 
+            d_random_float_in(-1.0F, 1.0F, state), 
+            d_random_float_in(-1.0F, 1.0F, state), 
             0);
-        if (squared_length(p) < 1) {
+        if (squared_length(p) < 1.0F) {
             return p;
         }
     }
@@ -144,7 +144,7 @@ __device__ t_vec3 d_random_in_unit_disk(curandState *state) {
 
 // Calculate reflected ray over a surface with given normal
 #define REFLECT(v, n) \
-    subtract(v, scale(n, 2*dot(v, n)))
+    subtract(v, scale(n, 2.0F*dot(v, n)))
 
 // Calculate refracted ray over a surface with given normal and a given ratio 
 // of refractive indexes

@@ -9,11 +9,11 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define PI 3.14159265358979323846
+#define PI 3.14159265358979323846F
 
 // Returns a float in [0, 1)
 __host__ float h_random_float() {
-    return ((float) rand()) / ((float) RAND_MAX + 1);
+    return ((float) rand()) / ((float) RAND_MAX + 1.0F);
 }
 __device__ float d_random_float(curandState *state) {
     return (float) curand_uniform(state);
@@ -32,7 +32,7 @@ __device__ float d_random_float_in(
 }
 
 __host__ __device__ float degrees_to_radians(float deg) {
-    return (deg*PI) / 180.0;
+    return (deg*PI) / 180.0F;
 }
 
 // CUDA macro for checking function calls
@@ -54,7 +54,7 @@ __host__ __device__ float degrees_to_radians(float deg) {
 
 __host__ inline void print_device_info(int id) {
     cudaDeviceProp properties;
-    cudaGetDeviceProperties(&properties, 0);
+    cudaGetDeviceProperties(&properties, id);
     
     fprintf(stderr, "\n-----------------Device properties-----------------\n");
     fprintf(stderr, "GPU name: %s \n", properties.name);

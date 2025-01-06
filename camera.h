@@ -49,7 +49,7 @@ t_camera camera_new(
 
     cam.image_width = image_width;
     cam.image_height = (int) (image_width/aspect_ratio);
-    cam.image_height = (cam.image_height < 1) ? 1 : cam.image_height;
+    cam.image_height = (cam.image_height < 1.0F) ? 1.0F : cam.image_height;
     
     cam.center = look_from;
 
@@ -58,25 +58,25 @@ t_camera camera_new(
     t_vec3 u = vec3_unit(cross((t_vec3) UP_DIRECTION, w));
     t_vec3 v = cross(w, u);
     float viewport_height = \
-        2.0 * tan(degrees_to_radians(vertical_fov)/2.0) * focus_distance;
+        2.0F * tan(degrees_to_radians(vertical_fov)/2.0F) * focus_distance;
     float viewport_width = viewport_height * image_width/cam.image_height;
     t_vec3 viewport_u = scale(u, viewport_width);
     t_vec3 viewport_v = scale(v, -viewport_height);
     cam.pixel_delta_u = divide(viewport_u, cam.image_width);
     cam.pixel_delta_v = divide(viewport_v, cam.image_height);
 
-    cam.defocus_angle_is_negative = (defocus_angle <= 0);
+    cam.defocus_angle_is_negative = (defocus_angle <= 0.0F);
 
     cam.pixel00 = cam.center;
     cam.pixel00 = subtract(cam.pixel00, scale(w, focus_distance));
-    cam.pixel00 = subtract(cam.pixel00, divide(viewport_u, 2));
-    cam.pixel00 = subtract(cam.pixel00, divide(viewport_v, 2));
+    cam.pixel00 = subtract(cam.pixel00, divide(viewport_u, 2.0F));
+    cam.pixel00 = subtract(cam.pixel00, divide(viewport_v, 2.0F));
     cam.pixel00 = sum(cam.pixel00, scale(
-        sum(cam.pixel_delta_u, cam.pixel_delta_v), 0.5));
+        sum(cam.pixel_delta_u, cam.pixel_delta_v), 0.5F));
 
     // defocus_disk_u, defocus_disk_v
     float defocus_radius = \
-        focus_distance * tan(degrees_to_radians(defocus_angle / 2));
+        focus_distance * tan(degrees_to_radians(defocus_angle / 2.0F));
     cam.defocus_disk_u = scale(u, defocus_radius);
     cam.defocus_disk_v = scale(v, defocus_radius);
 
@@ -88,8 +88,8 @@ __host__ void h_get_random_ray(t_ray *r, t_camera *cam, int i, int j) {
     // Offset from the center of the vector generated in the unit square
     // [-0.5, 0.5]x[-0.5, 0.5]
     t_vec3 offset  = vec3_new(
-        h_random_float() - 0.5, 
-        h_random_float() - 0.5, 
+        h_random_float() - 0.5F, 
+        h_random_float() - 0.5F, 
         0.0
     );
 
@@ -119,8 +119,8 @@ __device__ void d_get_random_ray(
 ) {
     // Offset from the center of the vector generated in the unit square
     // [-0.5, 0.5]x[-0.5, 0.5]
-    t_vec3 offset  = vec3_new(d_random_float(state) - 0.5, 
-                            d_random_float(state) - 0.5, 0.0);
+    t_vec3 offset  = vec3_new(d_random_float(state) - 0.5F, 
+                            d_random_float(state) - 0.5F, 0.0F);
 
     // Use the offset to select a random point inside the (i, j) pixel
     t_point3 pixel_sample = cam->pixel00;
@@ -163,7 +163,7 @@ __host__ void h_ray_color(
     // For each sphere, if the ray hits the sphere before all the other spheres
     // (0.001 lower bound is used to fix "shadow acne")
     for (int i = 0; i < number_of_spheres; i++) {
-        sphere_hit(&temp, r, world[i], 0.001, closest_hit);
+        sphere_hit(&temp, r, world[i], 0.001F, closest_hit);
         if (temp.did_hit) {
             hit_anything = true;
             closest_hit = temp.t;
@@ -211,7 +211,7 @@ __device__ void d_ray_color(
         // For each sphere, if the ray hits the sphere before all the other 
         // spheres (0.001 lower bound is used to fix "shadow acne")
         for (int i = 0; i < number_of_spheres; i++) {
-            sphere_hit(&temp, &current_ray, world[i], 0.001, closest_hit);
+            sphere_hit(&temp, &current_ray, world[i], 0.001F, closest_hit);
             if (temp.did_hit) {
                 hit_anything = true;
                 closest_hit = temp.t;
@@ -250,7 +250,7 @@ void h_camera_render(t_camera *cam, t_sphere world[], int number_of_spheres,
         for (int i = 0; i < cam->image_width; i++) {
             long rgb_offset = (j*(cam->image_width) + i)*3;
 
-            t_color pixel_color = color_new(0, 0, 0);
+            t_color pixel_color = color_new(0.0F, 0.0F, 0.0F);
 
             // Antialiasing: sample SAMPLE_PER_PIXEL colors and average them to
             // obtain pixel color
@@ -296,7 +296,7 @@ __global__ void d_camera_render(
 
         // Antialiasing: sample SAMPLE_PER_PIXEL colors and average them to
         // obtain pixel color
-        t_color pixel_color = color_new(0, 0, 0);
+        t_color pixel_color = color_new(0.0F, 0.0F, 0.0F);
         for (int sample = 0; sample < SAMPLES_PER_PIXEL; sample++) {
             t_ray random_ray;
             d_get_random_ray(&random_ray, cam, i, j, &state);

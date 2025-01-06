@@ -23,8 +23,8 @@ __host__ __device__ t_material new_lambertian(t_color albedo) {
     t_material material;
     material.type = LAMBERTIAN;
     material.albedo = albedo;
-    material.fuzz = -1;
-    material.refraction_index = -1;
+    material.fuzz = -1.0F;
+    material.refraction_index = -1.0F;
     return material;
 }
 
@@ -32,15 +32,15 @@ __host__ __device__ t_material new_metal(t_color albedo, float fuzz) {
     t_material material;
     material.type = METAL;
     material.albedo = albedo;
-    material.fuzz = (fuzz < 1) ? fuzz : 1;
-    material.refraction_index = -1;
+    material.fuzz = (fuzz < 1.0F) ? fuzz : 1.0F;
+    material.refraction_index = -1.0F;
     return material;
 }
 
 __host__ __device__ t_material new_dielectric(float refraction_index) {
     t_material material;
     material.type = DIELECTRIC;
-    material.albedo = (t_color){-1, -1, -1};
+    material.albedo = (t_color){-1.0F, -1.0F, -1.0F};
     material.fuzz = -1;
     material.refraction_index = refraction_index;
     return material;
@@ -51,9 +51,9 @@ __host__ __device__ float reflectance(
     float cosine, 
     float refraction_index
 ) {
-    float r0 = (1 - refraction_index) / (1 + refraction_index);
+    float r0 = (1.0F - refraction_index) / (1.0F + refraction_index);
     r0 = r0*r0;
-    return r0 + (1-r0)*pow((1 - cosine), 5);
+    return r0 + (1.0F-r0)*pow((1.0F - cosine), 5);
 }
 
 

@@ -71,7 +71,7 @@ __host__ __device__ void sphere_hit(
 
     // In order to calculate wether we hit an inside or ourside face, we can 
     // compute the dot product with the (OUTSIDE-POINTING!!!) normal
-    result->front_face = (dot(r->direction, result->normal) < 0);
+    result->front_face = (dot(r->direction, result->normal) < 0.0F);
 
     // TOTO switch to just memorizing the sphere object
     result->albedo = s.material.albedo;
@@ -82,7 +82,7 @@ __host__ __device__ void sphere_hit(
     // If the ray hits an object from inside (like in dielectrics, I need to 
     // invert the direction of the normal
     if (!result->front_face) {
-        result->normal = scale(result->normal, -1);
+        result->normal = scale(result->normal, -1.0F);
     }
 }
 

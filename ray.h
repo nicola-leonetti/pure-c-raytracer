@@ -72,18 +72,18 @@ __host__ void h_scatter(
 
         case DIELECTRIC:
             refraction_index = hit_result->front_face ? 
-                ( 1.0/(hit_result->refraction_index) ) :
+                ( 1.0F/(hit_result->refraction_index) ) :
                 hit_result->refraction_index;
             cos_theta = fmin(
                 dot(negate(vec3_unit(ray_in->direction)), hit_result->normal), 
-                1.0
+                1.0F
             );
             sin_theta = sqrt(1.0 - cos_theta*cos_theta);
         
             // Cannot refract, so it reflects (total internal reflection)
             // Reflectivity varying based on the angle is given by Shlick's 
             // Approximation
-            cannot_refract = ((refraction_index*sin_theta) > 1.0);
+            cannot_refract = ((refraction_index*sin_theta) > 1.0F);
             scatter_direction = (cannot_refract || \
             reflectance(cos_theta, refraction_index) > h_random_float()) ?
                 REFLECT(vec3_unit(ray_in->direction), hit_result->normal) :
@@ -91,7 +91,7 @@ __host__ void h_scatter(
                             vec3_unit(hit_result->normal), 
                             refraction_index);
 
-            *attenuation = color_new(1.0, 1.0, 1.0);
+            *attenuation = color_new(1.0F, 1.0F, 1.0F);
             break;
 
         default:
@@ -136,18 +136,18 @@ __device__ void d_scatter(
 
         case DIELECTRIC:
             refraction_index = hit_result->front_face ? 
-                ( 1.0/(hit_result->refraction_index) ) :
+                ( 1.0F/(hit_result->refraction_index) ) :
                 hit_result->refraction_index;
             cos_theta = fmin(
                 dot(negate(vec3_unit(ray_in->direction)), hit_result->normal), 
                 1.0F
             );
-            sin_theta = sqrt(1.0 - cos_theta*cos_theta);
+            sin_theta = sqrt(1.0F - cos_theta*cos_theta);
         
             // Cannot refract, so it reflects (total internal reflection)
             // Reflectivity varying based on the angle is given by Shlick's 
             // Approximation
-            cannot_refract = ((refraction_index*sin_theta) > 1.0);
+            cannot_refract = ((refraction_index*sin_theta) > 1.0F);
             scatter_direction = (cannot_refract || \
                                  reflectance(cos_theta, refraction_index) \
                                  > d_random_float(state)) ?
@@ -156,7 +156,7 @@ __device__ void d_scatter(
                             vec3_unit(hit_result->normal), 
                             refraction_index);
 
-            *attenuation = color_new(1.0, 1.0, 1.0);
+            *attenuation = color_new(1.0F, 1.0F, 1.0F);
             break;
 
         default:

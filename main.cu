@@ -11,7 +11,7 @@
 __host__ double h_cpu_second() {
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
-    return ((double) ts.tv_sec + (double) ts.tv_nsec * 1.e-9);
+    return ((double) ts.tv_sec + (double) ts.tv_nsec * 1.e-9F);
 }
 
 __host__ void h_init_world(t_sphere *world) {
@@ -19,13 +19,13 @@ __host__ void h_init_world(t_sphere *world) {
 
     // Ground sphere (Lambertian material)
     world[0] = sphere_new(
-        point3_new(0, -1000, 0), 1000, new_lambertian(COLOR_GRAY));
+        point3_new(0.0F, -1000.0F, 0.0F), 1000.0F, new_lambertian(COLOR_GRAY));
 
-    world[1] = sphere_new(point3_new(0, 1, 0), 1.0, new_dielectric(1.5));
+    world[1] = sphere_new(point3_new(0.0F, 1.0F, 0.0F), 1.0F, new_dielectric(1.5F));
     world[2] = \
-        sphere_new(point3_new(-4, 1, 0), 1.0, new_lambertian(COLOR_BLUE));
+        sphere_new(point3_new(-4.0F, 1.0F, 0.0F), 1.0F, new_lambertian(COLOR_BLUE));
     world[3] = \
-        sphere_new(point3_new(4, 1, 0), 1.0, new_metal(COLOR_GREEN, 0.0));
+        sphere_new(point3_new(4.0F, 1.0F, 0.0F), 1.0F, new_metal(COLOR_GREEN, 0.0F));
 
     // Create a grid of random spheres
     int index = 4;
@@ -34,37 +34,37 @@ __host__ void h_init_world(t_sphere *world) {
             // Randomize material choice
             float choose_mat = h_random_float();
             t_point3 center = point3_new(
-                a + 0.9 * h_random_float(), 
-                0.2, 
-                b + 0.9 * h_random_float()
+                a + 0.9F * h_random_float(), 
+                0.2F, 
+                b + 0.9F * h_random_float()
             );
             t_material sphere_material;
 
-            if (choose_mat < 0.8) {
+            if (choose_mat < 0.8F) {
                 // Lambertian (diffuse)
                 sphere_material = new_lambertian(
                     color_new(h_random_float()*h_random_float(), 
                               h_random_float()*h_random_float(), 
                               h_random_float()*h_random_float()
                             ));
-                world[index++] = sphere_new(center, 0.2, sphere_material);
+                world[index++] = sphere_new(center, 0.2F, sphere_material);
             } 
-            else if (choose_mat < 0.95) {
+            else if (choose_mat < 0.95F) {
                 // Metal
                 t_color color = color_new(
-                    h_random_float_in(0.5, 1), 
-                    h_random_float_in(0.5, 1), 
-                    h_random_float_in(0.5, 1)
+                    h_random_float_in(0.5F, 1.0F), 
+                    h_random_float_in(0.5F, 1.0F), 
+                    h_random_float_in(0.5F, 1.0F)
                 );
                 sphere_material = new_metal(
                     color, 
-                    h_random_float_in(0, 0.5)
+                    h_random_float_in(0.0F, 0.5F)
                 );
-                world[index++] = sphere_new(center, 0.2, sphere_material);
+                world[index++] = sphere_new(center, 0.2F, sphere_material);
             } 
             else {
                 // Dielectric (glass)
-                world[index++] = sphere_new(center, 0.2, new_dielectric(1.5));
+                world[index++] = sphere_new(center, 0.2F, new_dielectric(1.5F));
             }
             
         }
