@@ -6,8 +6,6 @@
 #include "material.h"
 #include "sphere.h"
 
-#define NUMBER_OF_SPHERES 489
-
 __host__ double h_cpu_second() {
     struct timespec ts;
     timespec_get(&ts, TIME_UTC);
@@ -173,8 +171,6 @@ int main() {
     // h_camera_render(&cam, h_world, NUMBER_OF_SPHERES, h_result_img);
     // double end  = h_cpu_second();
 
-    fprintf(stderr, "Computation time: %.6fs\n", end - start);
-
     CHECK(cudaMemcpy(
         h_result_img, 
         d_result_img, 
@@ -182,6 +178,8 @@ int main() {
         cudaMemcpyDeviceToHost
     ));
     h_write_PPM_img_to_stdout(h_result_img, cam.image_width, cam.image_height);
+
+    fprintf(stderr, "Computation time: %.6fs\n", end - start);
     
     CHECK(cudaFree(d_world));
     CHECK(cudaFree(d_cam));

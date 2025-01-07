@@ -5,6 +5,7 @@
 #include "common.h"
 #include "point3.h"
 #include "ray.h"
+#include "parameters.h"
 #include "sphere.h"
 #include "vec3.h"
 
@@ -283,30 +284,42 @@ __global__ void d_camera_render(
     curandState random_states[]
 ) {
 
-    int max_ray_bounces = MAX_RAY_BOUNCES;
-    int i = blockIdx.x*blockDim.x + threadIdx.x;
-    int j = blockIdx.y*blockDim.y + threadIdx.y;
+    // world[] contains data about spheres, so it is constantly accessed by all 
+    // threads. For this reason, it is beneficial to copy it into shared memory
+    // for faster access.
+    __shared__ t_sphere shared_world[NUMBER_OF_SPHERES];
 
-    if ((i < (cam->image_width)) && (j < (cam->image_height))) {
-        long pixel_index = j*(cam->image_width) + i;
+    int tid = threadIdx.x + threadIdx.y * blockDim.x;
+    int stride = blockDim.x * blockDim.y;
+
+    int max_ray_bounces = MAX_RAY_BOUNCES;
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if ((i < cam->image_width) && (j < cam->image_height)) {
+
+        // Copia dati in shared memory
+        for (int idx = tid; idx < number_of_spheres; idx += stride) {
+            shared_world[idx] = world[idx];
+        }
+        __syncthreads();
+
+        long pixel_index = j * (cam->image_width) + i;
         curand_init(RNG_SEED, pixel_index, 0, random_states + pixel_index);
 
-        long rgb_offset = pixel_index*3;
-        curandState state = random_states[j*(cam->image_width) + i];
+        long rgb_offset = pixel_index * 3;
+        curandState state = random_states[pixel_index];
 
-        // Antialiasing: sample SAMPLE_PER_PIXEL colors and average them to
-        // obtain pixel color
         t_color pixel_color = color_new(0.0F, 0.0F, 0.0F);
         for (int sample = 0; sample < SAMPLES_PER_PIXEL; sample++) {
             t_ray random_ray;
             d_get_random_ray(&random_ray, cam, i, j, &state);
             t_color sampled_color;
-            d_ray_color(&sampled_color, &random_ray, world, 
-                number_of_spheres, &max_ray_bounces, &state);
+            d_ray_color(&sampled_color, &random_ray, shared_world, 
+                        number_of_spheres, &max_ray_bounces, &state);
             pixel_color = sum(pixel_color, sampled_color);
         }
         pixel_color = divide(pixel_color, SAMPLES_PER_PIXEL);
-
         color_write_at(pixel_color, rgb_offset, result_img);
     }
 

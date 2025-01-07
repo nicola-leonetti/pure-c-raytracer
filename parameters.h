@@ -4,15 +4,17 @@
 #define RNG_SEED 1234
 
 // CUDA block size
-dim3 block(8,8); 
+dim3 block(16,8); 
 
 // Minimum value that is safe to square without underflow
 #define float_UNDERFLOW_LIMIT 1e-18F
 
 #define NEAR_ZERO_TRESHOLD 1e-8F
 
+#define NUMBER_OF_SPHERES 489
+
 #define ASPECT_RATIO 16.0F/9.0F
-#define VIEWPORT_WIDTH 600 // 1920 for HD
+#define VIEWPORT_WIDTH 1920 // 1920 for HD
 
 // Points from thich the camera looks from and towards which it looks at
 #define LOOK_FROM {20.0F, 4.0F, 20.0F}
@@ -33,7 +35,7 @@ dim3 block(8,8);
 
 // How many rays to send inside each square pixel in order to obtain a more 
 // precise color (antialiasing).
-#define SAMPLES_PER_PIXEL 100
+#define SAMPLES_PER_PIXEL 500
 
 // Limit to how many times a ray can bounce from a surface to another before 
 // determining its color. This is done in order to avoid stack overflow
