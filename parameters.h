@@ -3,8 +3,12 @@
 
 #define RNG_SEED 1234
 
+#define USE_CUDA 0
+
 // CUDA block size
+#if USE_CUDA
 dim3 block(8,4);
+#endif
 
 // Minimum value that is safe to square without underflow
 #define float_UNDERFLOW_LIMIT 1e-18F
