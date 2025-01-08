@@ -305,7 +305,6 @@ __global__ void d_camera_render(
         // __syncthreads();
 
         long pixel_index = j * (cam->image_width) + i;
-        curand_init(RNG_SEED, pixel_index, 0, random_states + pixel_index);
 
         long rgb_offset = pixel_index * 3;
         curandState state = random_states[pixel_index];

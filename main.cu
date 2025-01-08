@@ -84,6 +84,13 @@ __host__ void h_write_PPM_img_to_stdout(
     }
 }
 
+__global__ void init_curand(curandState states[], int width, int height) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (idx < width*height) {
+        curand_init(RNG_SEED, idx, 0, states+idx);
+    }
+}
 
 int main() {
     #if USE_CUDA
@@ -109,13 +116,16 @@ int main() {
     #endif
 
     // TODO Piccola ottimizzazione creare camera direttamente su device
-    t_camera cam = camera_new(ASPECT_RATIO, 
-                              VIEWPORT_WIDTH, 
-                              VERTICAL_FOV_DEGREES,
-                              (t_point3) LOOK_FROM, 
-                              (t_point3) LOOK_AT,
-                              DEFOCUS_ANGLE,
-                              FOCUS_DISTANCE);
+    t_camera cam = camera_new(
+        ASPECT_RATIO, 
+        VIEWPORT_WIDTH, 
+        VERTICAL_FOV_DEGREES,
+        (t_point3) LOOK_FROM, 
+        (t_point3) LOOK_AT,
+        DEFOCUS_ANGLE,
+        FOCUS_DISTANCE
+    );
+
     #if USE_CUDA
     t_camera *h_cam = &cam;
     t_camera *d_cam;
@@ -169,14 +179,24 @@ int main() {
     );
     #endif
 
-    start = h_cpu_second();
-
-    // CUDA version
     #if USE_CUDA
     dim3 grid(
         (cam.image_width + block.x - 1) / block.x, 
         (cam.image_height + block.y - 1) / block.y
     );
+    init_curand<<<grid, block>>>(
+        d_random_states, 
+        cam.image_width, 
+        cam.image_height
+    );
+    #endif
+
+
+    start = h_cpu_second();
+
+    // CUDA version
+    #if USE_CUDA
+
     d_camera_render<<<grid, block>>>(
         d_cam,
         d_world,

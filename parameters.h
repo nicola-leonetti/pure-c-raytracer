@@ -3,7 +3,7 @@
 
 #define RNG_SEED 1234
 
-#define USE_CUDA 0
+#define USE_CUDA 1
 
 // CUDA block size
 #if USE_CUDA
