@@ -85,7 +85,9 @@ __host__ void h_write_PPM_img_to_stdout(
 }
 
 __global__ void init_curand(curandState states[], int width, int height) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    int idx = j*width +i;
 
     if (idx < width*height) {
         curand_init(RNG_SEED, idx, 0, states+idx);
@@ -131,16 +133,7 @@ int main() {
     t_camera *d_cam;
     CHECK(cudaMalloc((void**)&d_cam, sizeof(cam)));
     CHECK(cudaMemcpy(d_cam, h_cam, sizeof(cam), cudaMemcpyHostToDevice));
-    #endif
-
-    // Allocate on device one RNG state for each pixel
-    #if USE_CUDA
     int number_of_pixels = cam.image_width*cam.image_height;
-    curandState *d_random_states;
-    CHECK(cudaMalloc(
-        (void**) &d_random_states, 
-        number_of_pixels*sizeof(curandState)
-    ));
     #endif
 
     // Allocate space for the image on host and device
@@ -184,6 +177,11 @@ int main() {
         (cam.image_width + block.x - 1) / block.x, 
         (cam.image_height + block.y - 1) / block.y
     );
+    curandState *d_random_states;
+    CHECK(cudaMalloc(
+        (void**) &d_random_states, 
+        number_of_pixels*sizeof(curandState)
+    ));
     init_curand<<<grid, block>>>(
         d_random_states, 
         cam.image_width, 
@@ -193,10 +191,8 @@ int main() {
 
 
     start = h_cpu_second();
-
     // CUDA version
     #if USE_CUDA
-
     d_camera_render<<<grid, block>>>(
         d_cam,
         d_world,
@@ -211,7 +207,6 @@ int main() {
     start = h_cpu_second();
     h_camera_render(&cam, h_world, NUMBER_OF_SPHERES, h_result_img);
     #endif
-
     end = h_cpu_second();
 
     double render_time = end-start;
