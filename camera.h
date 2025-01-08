@@ -287,10 +287,10 @@ __global__ void d_camera_render(
     // world[] contains data about spheres, so it is constantly accessed by all 
     // threads. For this reason, it is beneficial to copy it into shared memory
     // for faster access.
-    __shared__ t_sphere shared_world[NUMBER_OF_SPHERES];
+    // __shared__ t_sphere shared_world[NUMBER_OF_SPHERES];
 
-    int tid = threadIdx.x + threadIdx.y * blockDim.x;
-    int stride = blockDim.x * blockDim.y;
+    // int tid = threadIdx.x + threadIdx.y * blockDim.x;
+    // int stride = blockDim.x * blockDim.y;
 
     int max_ray_bounces = MAX_RAY_BOUNCES;
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -299,10 +299,10 @@ __global__ void d_camera_render(
     if ((i < cam->image_width) && (j < cam->image_height)) {
 
         // Copia dati in shared memory
-        for (int idx = tid; idx < number_of_spheres; idx += stride) {
-            shared_world[idx] = world[idx];
-        }
-        __syncthreads();
+        // for (int idx = tid; idx < number_of_spheres; idx += stride) {
+        //     shared_world[idx] = world[idx];
+        // }
+        // __syncthreads();
 
         long pixel_index = j * (cam->image_width) + i;
         curand_init(RNG_SEED, pixel_index, 0, random_states + pixel_index);
@@ -315,7 +315,7 @@ __global__ void d_camera_render(
             t_ray random_ray;
             d_get_random_ray(&random_ray, cam, i, j, &state);
             t_color sampled_color;
-            d_ray_color(&sampled_color, &random_ray, shared_world, 
+            d_ray_color(&sampled_color, &random_ray, world, 
                         number_of_spheres, &max_ray_bounces, &state);
             pixel_color = sum(pixel_color, sampled_color);
         }

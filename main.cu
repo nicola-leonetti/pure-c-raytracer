@@ -84,12 +84,16 @@ __host__ void h_write_PPM_img_to_stdout(
     }
 }
 
+
 int main() {
     print_device_info(0);
 
     // Initialize RNG
     srand((unsigned int) RNG_SEED);
+
+    double start, end;
     
+    start = h_cpu_second();
     // Initialize spheres on host
     int world_size = NUMBER_OF_SPHERES*sizeof(t_sphere);
     t_sphere *h_world = (t_sphere*) malloc(world_size); 
@@ -132,6 +136,9 @@ int main() {
         img_size, 
         cudaMemcpyHostToDevice
     ));
+    end = h_cpu_second();
+
+    double init_time = end-start;
 
     fprintf(
         stderr, 
@@ -150,7 +157,7 @@ int main() {
     );
 
     // CUDA Version
-    double start = h_cpu_second();
+    start = h_cpu_second();
     dim3 grid(
         (cam.image_width + block.x - 1) / block.x, 
         (cam.image_height + block.y - 1) / block.y
@@ -164,13 +171,16 @@ int main() {
     );
     cudaDeviceSynchronize();
     CHECK(cudaGetLastError());
-    double end  = h_cpu_second();
+    end = h_cpu_second();
 
     // CPU version
-    // double start = h_cpu_second();
+    // start = h_cpu_second();
     // h_camera_render(&cam, h_world, NUMBER_OF_SPHERES, h_result_img);
-    // double end  = h_cpu_second();
+    // end  = h_cpu_second();
 
+    double render_time = end-start;
+
+    start = h_cpu_second();
     CHECK(cudaMemcpy(
         h_result_img, 
         d_result_img, 
@@ -178,8 +188,13 @@ int main() {
         cudaMemcpyDeviceToHost
     ));
     h_write_PPM_img_to_stdout(h_result_img, cam.image_width, cam.image_height);
+    end = h_cpu_second();
 
-    fprintf(stderr, "Computation time: %.6fs\n", end - start);
+    double copy_back_time = end-start;
+
+    fprintf(stderr, "Initialization time: %.6fs\n", init_time);
+    fprintf(stderr, "Render time: %.6fs\n", render_time);
+    fprintf(stderr, "Copy back time: %.6fs\n", copy_back_time);
     
     CHECK(cudaFree(d_world));
     CHECK(cudaFree(d_cam));
