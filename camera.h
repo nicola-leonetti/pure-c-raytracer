@@ -308,16 +308,13 @@ __global__ void d_camera_render(
     unsigned char *result_img,
     curandState random_states[]
 ) {
-    __shared__ curandState state[BLOCKDIM_X*BLOCKDIM_Y];
-
-    int thread_idx = blockDim.x * threadIdx.y + threadIdx.x;
+    // int thread_idx = blockDim.x * threadIdx.y + threadIdx.x;
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if ((i < cam->image_width) && (j < cam->image_height)) {
         long pixel_index = j * (cam->image_width) + i;
         long rgb_offset = pixel_index * 3;
-        state[thread_idx] = random_states[pixel_index];
         t_color pixel_color= color_new(0.0F, 0.0F, 0.0F);
 
         int max_ray_bounces = MAX_RAY_BOUNCES;
@@ -325,9 +322,9 @@ __global__ void d_camera_render(
         t_ray random_ray;
         t_color sampled_color;
         for (int sample = 0; sample < SAMPLES_PER_PIXEL; sample++) {
-            d_get_random_ray(&random_ray, cam, i, j, state + thread_idx);
+            d_get_random_ray(&random_ray, cam, i, j, random_states + pixel_index);
             d_ray_color(&sampled_color, &random_ray, world, 
-                        number_of_spheres, &max_ray_bounces, state + thread_idx);
+                        number_of_spheres, &max_ray_bounces, random_states + pixel_index);
             pixel_color = sum(pixel_color, sampled_color);
         }
         pixel_color = divide(pixel_color, SAMPLES_PER_PIXEL);
