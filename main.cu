@@ -117,7 +117,6 @@ int main() {
     CHECK(cudaMemcpy(d_world, h_world, world_size, cudaMemcpyHostToDevice));
     #endif
 
-    // TODO Piccola ottimizzazione creare camera direttamente su device
     t_camera cam = camera_new(
         ASPECT_RATIO, 
         VIEWPORT_WIDTH, 

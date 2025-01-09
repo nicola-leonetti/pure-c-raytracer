@@ -7,7 +7,9 @@
 
 // CUDA block size
 #if USE_CUDA
-dim3 block(8,4);
+#define BLOCKDIM_X 16
+#define BLOCKDIM_Y 16
+dim3 block(BLOCKDIM_X,BLOCKDIM_Y);
 #endif
 
 // Minimum value that is safe to square without underflow

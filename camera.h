@@ -118,28 +118,44 @@ __device__ void d_get_random_ray(
     int j, 
     curandState *state
 ) {
-    // Offset from the center of the vector generated in the unit square
-    // [-0.5, 0.5]x[-0.5, 0.5]
-    t_vec3 offset  = vec3_new(d_random_float(state) - 0.5F, 
-                            d_random_float(state) - 0.5F, 0.0F);
 
-    // Use the offset to select a random point inside the (i, j) pixel
-    t_point3 pixel_sample = cam->pixel00;
-    pixel_sample = sum(pixel_sample, scale(cam->pixel_delta_u, i+offset.x));
-    pixel_sample = sum(pixel_sample, scale(cam->pixel_delta_v, j+offset.y));
+    t_vec3 offset = vec3_new(
+        d_random_float(state) - 0.5F,
+        d_random_float(state) - 0.5F,
+        0.0F
+    );
+
+    t_point3 pixel_sample = sum(
+        cam->pixel00,
+        scale(cam->pixel_delta_u, i + offset.x)
+    );
+    pixel_sample = sum(
+        pixel_sample,
+        scale(cam->pixel_delta_v, j + offset.y)
+    );
 
     t_point3 p = d_random_in_unit_disk(state);
-    t_point3 defocus_disk_sample = cam->center;
-    defocus_disk_sample = \
-        sum(defocus_disk_sample, scale(cam->defocus_disk_u, p.x));
-    defocus_disk_sample = \
-        sum(defocus_disk_sample, scale(cam->defocus_disk_v, p.y));
-    t_point3 ray_origin = (cam->defocus_angle_is_negative) ? 
-                            cam->center : defocus_disk_sample;
-    t_vec3 ray_direction = subtract(pixel_sample, ray_origin);
+    t_point3 defocus_disk_sample = sum(
+        cam->center,
+        scale(cam->defocus_disk_u, p.x)
+    );
+    defocus_disk_sample = sum(
+        defocus_disk_sample,
+        scale(cam->defocus_disk_v, p.y)
+    );
+
+    t_point3 ray_origin = cam->defocus_angle_is_negative ? 
+        cam->center : 
+        defocus_disk_sample;
+
+    t_vec3 ray_direction = subtract(
+        pixel_sample,
+        ray_origin
+    );
 
     *r = ray_new(ray_origin, ray_direction);
 }
+
 
 // Determining a different color for each of the pixels of the viewport by 
 // sending one or more rays from the camera center to each pixel 
@@ -164,7 +180,7 @@ __host__ void h_ray_color(
     // For each sphere, if the ray hits the sphere before all the other spheres
     // (0.001 lower bound is used to fix "shadow acne")
     for (int i = 0; i < number_of_spheres; i++) {
-        sphere_hit(&temp, r, world[i], 0.001F, closest_hit);
+        h_sphere_hit(&temp, r, world[i], 0.001F, closest_hit);
         if (temp.did_hit) {
             hit_anything = true;
             closest_hit = temp.t;
@@ -199,48 +215,57 @@ __device__ void d_ray_color(
     int *bounces,
     curandState *state
 ) {
+
     *color = COLOR_WHITE;
-    t_ray current_ray = *r;
     int bounces_remaining = *bounces;
+    t_color attenuation;
+    t_ray scattered_ray;
 
     while (bounces_remaining > 0) {
         bool hit_anything = false;
-
-        t_hit_result temp, result;
         float closest_hit = RAY_T_MAX;
+        t_hit_result result;
 
         // For each sphere, if the ray hits the sphere before all the other 
         // spheres (0.001 lower bound is used to fix "shadow acne")
         for (int i = 0; i < number_of_spheres; i++) {
-            sphere_hit(&temp, &current_ray, world[i], 0.001F, closest_hit);
-            if (temp.did_hit) {
+            d_sphere_hit(&result, r, world[i], 0.001F, closest_hit);
+            if (result.did_hit) {
                 hit_anything = true;
-                closest_hit = temp.t;
-                result = temp;
-            } 
+                closest_hit = result.t;
+            }
         }
 
+        // If no object is hit, return a blend between blue and white based
+        //  on the y coordinate, so going vertically from white all the way
+        //  to blue
         if (!hit_anything) {
-            // If no object is hit, return a blend between blue and white based
-            //  on the y coordinate, so going vertically from white all the way
-            //  to blue
             *color = mul(
                 *color, 
-                BLEND(vec3_unit(r->direction).y, COLOR_WHITE, COLOR_SKY)
+                BLEND(
+                    vec3_unit(r->direction).y,
+                    COLOR_WHITE,
+                    COLOR_SKY
+                )
             );
             break;
         }
 
+        d_scatter(
+            &result, 
+            r, 
+            &attenuation, 
+            &scattered_ray, 
+            state
+        );
+
         // Calculate color and attenuation of the scattered ray
-        t_color attenuation;
-        t_ray scattered_ray;
-        d_scatter(&result, r, &attenuation, &scattered_ray, state);
-        
         *color = mul(*color, attenuation);
-        current_ray = scattered_ray;
+        *r = scattered_ray;
         bounces_remaining--;
     }
 }
+
 
 void h_camera_render(t_camera *cam, t_sphere world[], int number_of_spheres, 
     unsigned char *result_img) {
@@ -283,32 +308,32 @@ __global__ void d_camera_render(
     unsigned char *result_img,
     curandState random_states[]
 ) {
+    __shared__ curandState state[BLOCKDIM_X*BLOCKDIM_Y];
 
-    int max_ray_bounces = MAX_RAY_BOUNCES;
+    int thread_idx = blockDim.x * threadIdx.y + threadIdx.x;
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if ((i < cam->image_width) && (j < cam->image_height)) {
-
         long pixel_index = j * (cam->image_width) + i;
-
         long rgb_offset = pixel_index * 3;
-        curandState state = random_states[pixel_index];
+        state[thread_idx] = random_states[pixel_index];
+        t_color pixel_color= color_new(0.0F, 0.0F, 0.0F);
 
-        t_color pixel_color = color_new(0.0F, 0.0F, 0.0F);
+        int max_ray_bounces = MAX_RAY_BOUNCES;
+
+        t_ray random_ray;
+        t_color sampled_color;
         for (int sample = 0; sample < SAMPLES_PER_PIXEL; sample++) {
-            t_ray random_ray;
-            d_get_random_ray(&random_ray, cam, i, j, &state);
-            t_color sampled_color;
-            d_ray_color(&sampled_color, &random_ray, world,  
-                        number_of_spheres, &max_ray_bounces, &state);
+            d_get_random_ray(&random_ray, cam, i, j, state + thread_idx);
+            d_ray_color(&sampled_color, &random_ray, world, 
+                        number_of_spheres, &max_ray_bounces, state + thread_idx);
             pixel_color = sum(pixel_color, sampled_color);
         }
         pixel_color = divide(pixel_color, SAMPLES_PER_PIXEL);
         color_write_at(pixel_color, rgb_offset, result_img);
     }
-
-    // TODO Trova un modo di stampare su stderr l'avanzamento
 }
+
 
 #endif
