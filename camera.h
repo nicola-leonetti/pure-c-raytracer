@@ -162,7 +162,7 @@ __device__ void d_get_random_ray(
 __host__ void h_ray_color(
     t_color *color, 
     t_ray *r, 
-    t_sphere world[], 
+    t_sphere world[],
     int number_of_spheres, 
     int *bounces
 ) { 
@@ -236,7 +236,7 @@ __device__ void d_ray_color(
             }
         }
 
-        // If no object is hit, return a blend between blue and white based
+        // If no object is hit, return a blend between blue and white base
         //  on the y coordinate, so going vertically from white all the way
         //  to blue
         if (!hit_anything) {
@@ -304,33 +304,32 @@ void h_camera_render(t_camera *cam, t_sphere world[], int number_of_spheres,
 __global__ void d_camera_render(
     t_camera *cam, 
     t_sphere world[], 
-    int number_of_spheres, 
+    int number_of_spheres,
     unsigned char *result_img,
     curandState random_states[]
 ) {
     // int thread_idx = blockDim.x * threadIdx.y + threadIdx.x;
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    int pixel_i = blockIdx.x * blockDim.x + threadIdx.x;
+    int pixel_j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if ((i < cam->image_width) && (j < cam->image_height)) {
-        long pixel_index = j * (cam->image_width) + i;
+    if ((pixel_i < cam->image_width) && (pixel_j < cam->image_height)) {
+        long pixel_index = pixel_j * (cam->image_width) + pixel_i;
         long rgb_offset = pixel_index * 3;
-        t_color pixel_color= color_new(0.0F, 0.0F, 0.0F);
 
-        int max_ray_bounces = MAX_RAY_BOUNCES;
-
-        t_ray random_ray;
+        t_color pixel_color = color_new(0.0F, 0.0F, 0.0F);
         t_color sampled_color;
+        t_ray random_ray;
+        int max_ray_bounces = MAX_RAY_BOUNCES;
+        long linear_index = (blockIdx.y*gridDim.x + blockIdx.x) * (blockDim.x*blockDim.y) + (threadIdx.y*blockDim.x + threadIdx.x);
         for (int sample = 0; sample < SAMPLES_PER_PIXEL; sample++) {
-            d_get_random_ray(&random_ray, cam, i, j, random_states + pixel_index);
-            d_ray_color(&sampled_color, &random_ray, world, 
-                        number_of_spheres, &max_ray_bounces, random_states + pixel_index);
+            d_get_random_ray(&random_ray, cam, pixel_i, pixel_j, random_states + linear_index);
+            d_ray_color(&sampled_color, &random_ray, world, NUMBER_OF_SPHERES, &max_ray_bounces, random_states + linear_index);
             pixel_color = sum(pixel_color, sampled_color);
         }
-        pixel_color = divide(pixel_color, SAMPLES_PER_PIXEL);
-        color_write_at(pixel_color, rgb_offset, result_img);
+        sampled_color = divide(pixel_color, SAMPLES_PER_PIXEL);
+
+        color_write_at(sampled_color, rgb_offset, result_img);
     }
 }
-
 
 #endif

@@ -72,6 +72,7 @@ __host__ void h_init_world(t_sphere *world) {
     fprintf(stderr, "Spheres initilized\n");
 }
 
+
 __host__ void h_write_PPM_img_to_stdout(
     unsigned char *img, 
     int width, 
@@ -137,8 +138,8 @@ int main() {
 
     // Allocate space for the image on host and device
     long img_size = cam.image_height*cam.image_width*sizeof(unsigned char)*3;
-    unsigned char *h_result_img = (unsigned char*) malloc(img_size);
     
+    unsigned char *h_result_img = (unsigned char*) malloc(img_size);
     #if USE_CUDA
     unsigned char *d_result_img;
     CHECK(cudaMalloc((void**)&d_result_img, img_size));
@@ -147,7 +148,7 @@ int main() {
         h_result_img, 
         img_size, 
         cudaMemcpyHostToDevice
-    ));
+    ));   
     #endif
     end = h_cpu_second();
 
@@ -234,6 +235,6 @@ int main() {
     CHECK(cudaFree(d_result_img));
     #endif
 
-    free(h_world);
     free(h_result_img);
+    free(h_world);
 }
