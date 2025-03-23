@@ -191,8 +191,9 @@ int main() {
 
 
     start = h_cpu_second();
-    // CUDA version
+
     #if USE_CUDA
+    
     d_camera_render<<<grid, block>>>(
         d_cam,
         d_world,
@@ -202,11 +203,13 @@ int main() {
     );
     cudaDeviceSynchronize();
     CHECK(cudaGetLastError());
+
     #else
     // CPU version
     start = h_cpu_second();
     h_camera_render(&cam, h_world, NUMBER_OF_SPHERES, h_result_img);
     #endif
+
     end = h_cpu_second();
 
     double render_time = end-start;
